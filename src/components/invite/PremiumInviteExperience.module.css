@@ -1,0 +1,982 @@
+/* ── Single-scene container ── */
+.scene {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background: #050505;
+  overflow: hidden;
+}
+
+.frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 430px;
+  height: 100svh;
+  overflow: hidden;
+  background: transparent;
+}
+
+.frameBody {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Info strip (countdown + venue) ── */
+.topBar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.topBarDock {
+  width: 100%;
+}
+
+.bottomDock {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 340px;
+  padding: 0 20px calc(env(safe-area-inset-bottom, 0px) + 28px);
+  background: transparent;
+  box-sizing: border-box;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.bottomDock > * {
+  pointer-events: auto;
+}
+
+.bottomDock .cta {
+  margin-top: 34px;
+}
+
+.venueBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+}
+
+.venueLabel {
+  margin: 0;
+  font-size: clamp(7.5px, 1.9vw, 8.5px);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(212, 175, 55, 0.58);
+}
+
+.venueName {
+  margin: 0;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: clamp(0.78rem, 3.1vw, 0.9rem);
+  font-weight: 600;
+  color: rgba(250, 240, 208, 0.96);
+  line-height: 1.3;
+}
+
+.venueAddress {
+  margin: 0;
+  font-size: clamp(0.62rem, 2.4vw, 0.72rem);
+  font-weight: 500;
+  color: rgba(245, 230, 188, 0.72);
+  line-height: 1.4;
+}
+
+.venueMapsCta {
+  margin-top: 2px;
+  font-size: clamp(7px, 1.85vw, 8px);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(212, 175, 55, 0.88);
+  transition: color 0.18s ease;
+}
+
+.venueMapsCta:hover {
+  color: #faf0d0;
+}
+
+/* ── Background (closed state) ── */
+.bgLayer {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  transition: opacity 0.55s ease;
+}
+
+.bgLayerHidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bgImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.ambient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 85% 55% at 50% 38%,
+    rgba(212, 175, 55, 0.08),
+    transparent 62%
+  );
+}
+
+/* ── Closed state ── */
+.closedLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: transparent;
+  padding:
+    calc(env(safe-area-inset-top, 0px) + 12px)
+    20px
+    calc(env(safe-area-inset-bottom, 0px) + 220px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.closedLayerHidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.98);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+/* Names + envelope as one visual group */
+.heroGroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+  gap: 0;
+  background: transparent;
+}
+
+.namesBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+  background: transparent;
+}
+
+.nameLine {
+  margin: 0;
+  font-family: var(--font-serif, Georgia, "Times New Roman", serif);
+  font-size: clamp(1.55rem, 6.8vw, 2rem);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: 0.06em;
+  background: linear-gradient(
+    168deg,
+    #faf0d0 0%,
+    #d4af37 35%,
+    #f0e0b0 58%,
+    #a8842e 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.nameAmp {
+  margin: 4px 0;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: clamp(0.85rem, 3.6vw, 1rem);
+  font-style: italic;
+  font-weight: 400;
+  color: rgba(212, 175, 55, 0.62);
+  letter-spacing: 0.12em;
+}
+
+/* ── Wedding countdown ── */
+.countdown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 320px;
+}
+
+.countdownLabel {
+  margin: 0 0 7px;
+  font-size: clamp(8px, 2vw, 9px);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(212, 175, 55, 0.62);
+}
+
+.countdownGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(5px, 1.8vw, 8px);
+  width: 100%;
+}
+
+.countdownUnit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.countdownValue {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: clamp(28px, 7.5vw, 34px);
+  border-radius: 8px;
+  border: 1px solid rgba(212, 175, 55, 0.34);
+  background: rgba(8, 6, 2, 0.28);
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: clamp(0.82rem, 3.4vw, 1rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #faf0d0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 236, 196, 0.08),
+    0 0 10px rgba(212, 175, 55, 0.06);
+}
+
+.countdownUnitLabel {
+  font-size: clamp(6.5px, 1.7vw, 7.5px);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(212, 175, 55, 0.52);
+}
+
+.countdownCelebration {
+  margin: 0;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: clamp(0.78rem, 3.1vw, 0.9rem);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(212, 175, 55, 0.88);
+}
+
+/* Envelope — all wrappers transparent, no black box */
+.envelopeWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.envelopeGlow {
+  position: absolute;
+  width: min(90vw, 360px);
+  height: min(90vw, 360px);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(212, 175, 55, 0.14) 0%,
+    rgba(212, 175, 55, 0.04) 45%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.envelopeFloat {
+  position: relative;
+  z-index: 1;
+  background: none;
+  animation: envelopeFloat 6s ease-in-out infinite;
+}
+
+.envelopeImg {
+  display: block;
+  width: min(82vw, 340px);
+  height: auto;
+  max-height: 48vh;
+  object-fit: contain;
+  object-position: center center;
+  background: none;
+  border: none;
+  vertical-align: middle;
+  /*
+   * Requires invite-envelope.png with true alpha transparency.
+   * Do not use mix-blend-mode — it causes checkerboard/ghost artifacts
+   * on semi-transparent PNG edges.
+   */
+}
+
+@keyframes envelopeFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+/* ── CTA ── */
+.ctaWrap {
+  width: 100%;
+  max-width: 340px;
+  flex-shrink: 0;
+  padding-top: 8px;
+  background: transparent;
+}
+
+.cta {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 54px;
+  padding: 0 20px;
+  border: 1px solid rgba(212, 175, 55, 0.55);
+  border-radius: 999px;
+  background: linear-gradient(
+    165deg,
+    rgba(130, 104, 42, 0.92) 0%,
+    rgba(72, 56, 20, 0.96) 38%,
+    rgba(48, 38, 14, 0.98) 62%,
+    rgba(88, 70, 28, 0.94) 100%
+  );
+  color: #faf0d0;
+  font-size: 10.5px;
+  font-weight: 900;
+  letter-spacing: 0.28em;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 236, 196, 0.28),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 0 32px rgba(212, 175, 55, 0.18),
+    0 0 64px rgba(212, 175, 55, 0.08),
+    0 14px 40px rgba(0, 0, 0, 0.45);
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 236, 196, 0.18) 0%,
+    transparent 45%
+  );
+  pointer-events: none;
+}
+
+.cta::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -140%;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 244, 214, 0.38),
+    transparent
+  );
+  animation: ctaSheen 4.5s ease-in-out infinite;
+}
+
+@keyframes ctaSheen {
+  0% { left: -140%; }
+  45%, 100% { left: 150%; }
+}
+
+.cta:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 236, 196, 0.28),
+    0 0 48px rgba(212, 175, 55, 0.28),
+    0 0 80px rgba(212, 175, 55, 0.12),
+    0 18px 48px rgba(0, 0, 0, 0.45);
+}
+
+.cta:active {
+  transform: scale(0.968);
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.35),
+    0 0 24px rgba(212, 175, 55, 0.14);
+}
+
+.cta:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+/* ── Media stage — shared box for video/poster + form overlay ── */
+.mediaStage {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+.mediaStagePreload {
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.mediaStageVisible {
+  z-index: 2;
+  opacity: 1;
+}
+
+.mediaStageOpening {
+  background: #000;
+}
+
+/*
+ * Frame matches poster 9:16 — overlay % align with contained image.
+ * Height-first on tall phones so poster fills the screen.
+ */
+.mediaFrame {
+  position: relative;
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  aspect-ratio: 9 / 16;
+  background: transparent;
+}
+
+@media (max-aspect-ratio: 9/16) {
+  .mediaFrame {
+    width: 100%;
+    height: auto;
+    max-height: 100%;
+  }
+}
+
+.media {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  background: #000;
+}
+
+.mediaHidden {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.mediaPlaying {
+  position: relative;
+  z-index: 1;
+  opacity: 1;
+}
+
+.mediaPoster {
+  animation: posterFadeIn 0.55s ease forwards;
+}
+
+@keyframes posterFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Form overlay — positioned on blank card area below tree emblem ── */
+.formLayer {
+  position: absolute;
+  inset: 0;
+  animation: formFadeIn 0.65s ease forwards;
+  pointer-events: none;
+}
+
+.formLayer > * {
+  pointer-events: auto;
+}
+
+@keyframes formFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/*
+ * Positioned on blank card area — insets set via inline style from INVITE_PAPER_LAYOUT.
+ */
+.paperOverlay {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: transparent;
+  z-index: 2;
+  box-sizing: border-box;
+}
+
+.paperScroll {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding:
+    0 0
+    calc(env(safe-area-inset-bottom, 0px) + 10px);
+  scrollbar-width: none;
+  box-sizing: border-box;
+}
+
+.paperScroll::-webkit-scrollbar {
+  display: none;
+}
+
+.paperInner {
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.paperHeader {
+  text-align: center;
+  padding-top: 0;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.paperTitle {
+  margin: 0;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: clamp(8px, 2.1vw, 9.5px);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(228, 198, 110, 0.96);
+}
+
+.paperSubtitle {
+  margin: 7px 0 0;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: clamp(10px, 2.55vw, 11.5px);
+  font-weight: 600;
+  color: rgba(245, 230, 188, 0.96);
+  letter-spacing: 0.02em;
+  line-height: 1.38;
+}
+
+.paperSubtitleMuted {
+  font-weight: 500;
+  color: rgba(245, 230, 188, 0.72);
+}
+
+.paperAmp {
+  color: rgba(212, 175, 55, 0.82);
+  font-style: italic;
+}
+
+.paperDate {
+  margin: 8px 0 0;
+  font-size: clamp(9px, 2.3vw, 10.5px);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: rgba(228, 198, 110, 0.92);
+}
+
+/* ── Inline RSVP form — fits inside gold frame ── */
+.form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  box-sizing: border-box;
+  justify-content: space-between;
+}
+
+.formBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 10px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.formBody::-webkit-scrollbar {
+  display: none;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  min-width: 0;
+  border: none;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.label {
+  font-size: clamp(7.5px, 1.95vw, 8.5px);
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: rgba(228, 198, 110, 0.98);
+}
+
+.optional {
+  opacity: 0.42;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  max-width: 100%;
+  padding: 5px 9px;
+  border-radius: 7px;
+  border: 0.5px solid rgba(212, 175, 55, 0.36);
+  background: rgba(10, 8, 4, 0.44);
+  backdrop-filter: blur(6px);
+  color: rgba(250, 240, 208, 0.98);
+  font-size: clamp(10px, 2.5vw, 11px);
+  font-weight: 600;
+  line-height: 1.35;
+  outline: none;
+  box-sizing: border-box;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.input {
+  min-height: 27px;
+  height: 27px;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: rgba(212, 175, 55, 0.52);
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.12),
+    0 0 10px rgba(212, 175, 55, 0.14);
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: rgba(245, 230, 188, 0.54);
+  font-size: clamp(9px, 2.25vw, 10px);
+  font-weight: 500;
+  font-style: italic;
+}
+
+.textarea {
+  resize: none;
+  min-height: 36px;
+  max-height: 40px;
+  line-height: 1.38;
+}
+
+.pills {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 5px;
+  width: 100%;
+}
+
+.countRow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  width: 100%;
+}
+
+.pill,
+.countPill {
+  min-width: 0;
+  min-height: 24px;
+  padding: 0 4px;
+  border-radius: 999px;
+  border: 0.5px solid rgba(212, 175, 55, 0.34);
+  background: rgba(10, 8, 4, 0.4);
+  color: rgba(250, 240, 208, 0.94);
+  font-size: clamp(8.5px, 2.15vw, 9.5px);
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1.2;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.16s ease;
+}
+
+.pill:active,
+.countPill:active {
+  transform: scale(0.97);
+}
+
+.pillActive {
+  border-color: rgba(212, 175, 55, 0.62);
+  background: linear-gradient(
+    180deg,
+    rgba(212, 175, 55, 0.22) 0%,
+    rgba(212, 175, 55, 0.08) 100%
+  );
+  color: #faf0d0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 236, 196, 0.16),
+    0 0 10px rgba(212, 175, 55, 0.14);
+}
+
+.countPillActive {
+  border-color: rgba(212, 175, 55, 0.68);
+  background: linear-gradient(
+    180deg,
+    rgba(212, 175, 55, 0.26) 0%,
+    rgba(140, 112, 40, 0.14) 100%
+  );
+  color: #faf0d0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 236, 196, 0.18),
+    0 0 12px rgba(212, 175, 55, 0.18);
+}
+
+.submitWrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  flex-shrink: 0;
+  margin-top: auto;
+  padding-top: 8px;
+  padding-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.submit {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 82%;
+  max-width: 196px;
+  min-height: 29px;
+  margin: 0;
+  border-radius: 999px;
+  border: 0.5px solid rgba(212, 175, 55, 0.62);
+  background: linear-gradient(
+    165deg,
+    rgba(118, 94, 38, 0.9) 0%,
+    rgba(72, 56, 20, 0.94) 42%,
+    rgba(48, 38, 14, 0.96) 68%,
+    rgba(88, 70, 28, 0.92) 100%
+  );
+  color: #faf0d0;
+  font-size: clamp(8px, 2.05vw, 9px);
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-align: center;
+  cursor: pointer;
+  box-sizing: border-box;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 236, 196, 0.22),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.28),
+    0 0 20px rgba(212, 175, 55, 0.12),
+    0 6px 18px rgba(0, 0, 0, 0.28);
+  transition:
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.submit::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 236, 196, 0.16) 0%,
+    transparent 48%
+  );
+  pointer-events: none;
+}
+
+.submit::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 236, 196, 0.28),
+    transparent
+  );
+  animation: ctaSheen 4.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.submit:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 236, 196, 0.22),
+    0 0 28px rgba(212, 175, 55, 0.2),
+    0 8px 22px rgba(0, 0, 0, 0.3);
+}
+
+.submit:active {
+  transform: scale(0.975);
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.32),
+    0 0 16px rgba(212, 175, 55, 0.12);
+}
+
+.submit:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.error {
+  margin: 0;
+  font-size: clamp(8px, 2vw, 9px);
+  color: rgba(220, 130, 110, 0.95);
+}
+
+.success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex: 1;
+  gap: 5px;
+  background: transparent;
+}
+
+.successIcon {
+  font-size: 16px;
+  color: rgba(212, 175, 55, 0.85);
+}
+
+.successTitle {
+  margin: 0;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 0.95rem;
+  color: #f5e6bc;
+}
+
+.successText {
+  margin: 0;
+  font-size: 10.5px;
+  color: rgba(245, 230, 188, 0.75);
+  line-height: 1.45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .envelopeFloat,
+  .cta::after,
+  .submit::after {
+    animation: none;
+  }
+
+  .formLayer,
+  .mediaPoster {
+    animation: none;
+  }
+}
+
+@media (max-height: 740px) {
+  .paperHeader { margin-bottom: 10px; }
+  .form { gap: 9px; }
+  .formBody { gap: 9px; }
+  .input { height: 26px; min-height: 26px; }
+  .pill, .countPill { min-height: 23px; }
+  .submit { min-height: 27px; }
+  .textarea { min-height: 34px; max-height: 38px; }
+}
+
+@media (max-height: 680px) {
+  .paperInner {
+    transform: scale(0.97);
+    transform-origin: top center;
+  }
+
+  .paperHeader { margin-bottom: 8px; }
+  .form { gap: 8px; }
+  .formBody { gap: 8px; }
+  .submitWrap { padding-bottom: 10px; }
+}

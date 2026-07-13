@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a4a3a"/>
+      <stop offset="100%" stop-color="#050505"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#D4AF37" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#D4AF37" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <rect width="400" height="400" fill="url(#glow)"/>
+  <rect x="48" y="56" width="304" height="288" rx="8" stroke="#D4AF37" stroke-opacity="0.2" stroke-width="1" fill="rgba(5,5,5,0.4)"/>
+  <circle cx="200" cy="180" r="36" stroke="#D4AF37" stroke-opacity="0.35" stroke-width="1"/>
+  <path d="M200 155v50M175 180h50" stroke="#F6D77A" stroke-opacity="0.5" stroke-width="1"/>
+  <text x="200" y="280" text-anchor="middle" fill="#D4AF37" fill-opacity="0.5" font-family="Georgia, serif" font-size="14" letter-spacing="0.2em">MEMORY</text>
+</svg>
