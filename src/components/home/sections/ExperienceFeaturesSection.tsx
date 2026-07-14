@@ -25,22 +25,19 @@ export function ExperienceFeaturesSection() {
 
       panels.forEach((panel, index) => {
         const from =
-          index % 2 === 0
-            ? "inset(0 100% 0 0)"
-            : "inset(0 0 0 100%)";
+          index % 2 === 0 ? "inset(0 100% 0 0)" : "inset(0 0 0 100%)";
 
         gsap.fromTo(
           panel,
-          { clipPath: from, opacity: 0.4 },
+          { clipPath: from },
           {
             clipPath: "inset(0 0% 0 0%)",
-            opacity: 1,
             ease: "power2.out",
             scrollTrigger: {
               trigger: panel,
-              start: "top 80%",
+              start: "top 82%",
               end: "top 40%",
-              scrub: 0.7,
+              scrub: 0.55,
             },
           },
         );
@@ -73,7 +70,7 @@ export function ExperienceFeaturesSection() {
       className="cine-feat"
       aria-label="Quiz ve playlist"
     >
-      <div className="cine-feat__intro">
+      <div className="cine-feat__intro cine-container">
         <p className="cine-eyebrow">Çift Deneyimi</p>
         <SplitTextReveal as="h2" className="cine-heading cine-heading--light">
           Ağacın yanında iki zarif ritüel
@@ -86,36 +83,38 @@ export function ExperienceFeaturesSection() {
             src={ASSETS.quizLeadersBg}
             alt=""
             fill
-            sizes="(max-width: 900px) 100vw, 50vw"
+            sizes="100vw"
             className="cine-feat__image"
           />
+          <div className="cine-feat__scrim" aria-hidden />
         </div>
         <div className="cine-feat__text">
-          <h3 className="cine-feat__title">Çifti Ne Kadar Tanıyorsun?</h3>
+          <p className="cine-eyebrow">Birlikte Eğlenin</p>
+          <h3 className="cine-feat__title">Çifti ne kadar tanıyorsun?</h3>
           <span className="cine-feat__line" aria-hidden />
-          <p className="cine-body cine-body--muted">
-            Misafirler quiz ile ilişki hikâyesine katılır; skorlar yapraklara
-            dönüşerek ağacı zenginleştirir.
+          <p className="cine-body">
+            Canlı sıralama ve düğüne özel sorular.
           </p>
         </div>
       </article>
 
-      <article className="cine-feat__panel cine-feat__panel--reverse">
+      <article className="cine-feat__panel">
         <div className="cine-feat__media">
           <Image
             src={ASSETS.galleryBg}
             alt=""
             fill
-            sizes="(max-width: 900px) 100vw, 50vw"
+            sizes="100vw"
             className="cine-feat__image"
           />
+          <div className="cine-feat__scrim" aria-hidden />
         </div>
         <div className="cine-feat__text">
-          <h3 className="cine-feat__title">Düğünün Sesini Yeniden Dinle</h3>
+          <p className="cine-eyebrow">O Geceyi Dinle</p>
+          <h3 className="cine-feat__title">Düğünün sesi hep seninle.</h3>
           <span className="cine-feat__line" aria-hidden />
-          <p className="cine-body cine-body--muted">
-            Playlist, o gecenin duygusal atmosferini korur — her dönüşte taze,
-            her dinleyişte yakın.
+          <p className="cine-body">
+            Çiftin seçtiği parçalar ve düğün playlist’i.
           </p>
         </div>
       </article>

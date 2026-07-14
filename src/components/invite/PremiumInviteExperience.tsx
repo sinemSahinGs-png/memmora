@@ -12,9 +12,41 @@ import styles from "./PremiumInviteExperience.module.css";
 
 interface PremiumInviteExperienceProps {
   couple: Couple;
+  /** Homepage phone preview — relative layout, no fixed fullscreen shell */
+  embedded?: boolean;
 }
 
-export function PremiumInviteExperience({ couple }: PremiumInviteExperienceProps) {
+function EmbeddedInviteEnvelope() {
+  return (
+    <div className="invite-page invite-page--premium invite-page--embedded">
+      <div className={`${styles.scene} ${styles.sceneEmbedded}`}>
+        <div className={`${styles.frame} ${styles.frameEmbedded}`}>
+          <div className={styles.envelopeWrap}>
+            <div className={styles.envelopeFloat}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={INVITE_ASSETS.envelope}
+                alt=""
+                className={styles.envelopeImg}
+                draggable={false}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function PremiumInviteExperience({
+  couple,
+  embedded = false,
+}: PremiumInviteExperienceProps) {
+  if (embedded) return <EmbeddedInviteEnvelope />;
+  return <FullPremiumInviteExperience couple={couple} />;
+}
+
+function FullPremiumInviteExperience({ couple }: { couple: Couple }) {
   const [stage, setStage] = useState<InviteStage>("closed");
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -139,7 +171,6 @@ export function PremiumInviteExperience({ couple }: PremiumInviteExperienceProps
       <div className={styles.scene}>
         <div className={styles.frame}>
           <div className={styles.frameBody}>
-          {/* ── Layer 0: Botanical background (closed only) ── */}
           <div
             className={`${styles.bgLayer} ${stage !== "closed" ? styles.bgLayerHidden : ""}`}
             aria-hidden={stage !== "closed"}
@@ -154,7 +185,6 @@ export function PremiumInviteExperience({ couple }: PremiumInviteExperienceProps
             <div className={styles.ambient} />
           </div>
 
-          {/* ── Layer 1: Closed state UI ── */}
           {stage === "closed" ? (
             <div className={styles.closedLayer} aria-hidden={false}>
               <div className={styles.heroGroup}>

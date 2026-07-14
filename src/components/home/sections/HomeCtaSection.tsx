@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -25,42 +26,39 @@ export function HomeCtaSection({ demoHref }: HomeCtaSectionProps) {
 
       const heading = section.querySelector(".cine-cta__heading");
       const support = section.querySelector(".cine-cta__support");
-      const btn = section.querySelector(".cine-cta__action");
+      const actions = section.querySelector(".cine-cta__actions");
+      const note = section.querySelector(".cine-cta__note");
       const bloom = section.querySelector(".cine-cta__bloom");
-      const leaf = section.querySelector(".cine-cta__leaf");
 
       if (!(heading instanceof HTMLElement)) return;
 
       const split = new SplitType(heading, { types: "words", tagName: "span" });
       const words = split.words ?? [];
 
-      gsap.set(words, { opacity: 0, y: 28, filter: "blur(8px)" });
-      gsap.set([support, btn], { opacity: 0, y: 18 });
-      if (bloom) gsap.set(bloom, { opacity: 0, scale: 0.8 });
-      if (leaf) gsap.set(leaf, { opacity: 0, y: -20 });
+      gsap.set(words, { opacity: 0.55, y: 12, filter: "blur(2px)" });
+      gsap.set([support, actions, note], { opacity: 0.7, y: 8 });
+      if (bloom) gsap.set(bloom, { opacity: 0.2, scale: 0.95 });
 
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: section,
-          start: "top 65%",
-          end: "top 20%",
-          scrub: 0.75,
-        },
-      });
-
-      tl.to(words, {
-        opacity: 1,
-        y: 0,
-        filter: "blur(0px)",
-        stagger: 0.08,
-        ease: "none",
-      });
-      if (bloom) tl.to(bloom, { opacity: 0.55, scale: 1, ease: "none" }, 0.2);
-      tl.to(support, { opacity: 1, y: 0, ease: "none" }, 0.45);
-      tl.to(btn, { opacity: 1, y: 0, ease: "none" }, 0.65);
-      if (leaf) {
-        tl.to(leaf, { opacity: 0.45, y: 40, ease: "none" }, 0.3);
-      }
+      gsap
+        .timeline({
+          scrollTrigger: {
+            trigger: section,
+            start: "top 70%",
+            end: "top 30%",
+            scrub: 0.5,
+          },
+        })
+        .to(words, {
+          opacity: 1,
+          y: 0,
+          filter: "blur(0px)",
+          stagger: 0.06,
+          ease: "none",
+        })
+        .to(bloom, { opacity: 0.45, scale: 1, ease: "none" }, 0.15)
+        .to(support, { opacity: 1, y: 0, ease: "none" }, 0.3)
+        .to(actions, { opacity: 1, y: 0, ease: "none" }, 0.45)
+        .to(note, { opacity: 1, y: 0, ease: "none" }, 0.55);
 
       return () => split.revert();
     },
@@ -76,18 +74,26 @@ export function HomeCtaSection({ demoHref }: HomeCtaSectionProps) {
       aria-labelledby="cta-heading"
     >
       <div className="cine-cta__bloom" aria-hidden />
-      <span className="cine-cta__leaf" aria-hidden />
-
-      <div className="cine-cta__inner">
+      <div className="cine-cta__inner cine-container">
+        <p className="cine-eyebrow">MEMOORA</p>
         <h2 id="cta-heading" className="cine-cta__heading">
-          Bir gece biter. Yaşayan anılar kalır.
+          Düğününü davet et.
+          <br />
+          Birlikte yaşa.
+          <br />
+          Hatıra olarak sakla.
         </h2>
         <p className="cine-cta__support">
-          Düğününüz için size özel Memoora dünyasını oluşturun.
+          Ücretsiz dijital davetiye, interaktif quiz ve size özel NFC düğün
+          hatıralarıyla Memoora deneyimini keşfedin.
         </p>
-        <div className="cine-cta__action">
-          <MagneticButton href={demoHref}>Memoora&apos;yı Keşfet</MagneticButton>
+        <div className="cine-cta__actions">
+          <MagneticButton href={demoHref}>Demo Düğünü Gör</MagneticButton>
+          <Link href="#nfc-urunler" className="cine-btn cine-btn--ghost">
+            NFC Ürünlerini İncele
+          </Link>
         </div>
+        <p className="cine-cta__note">Dijital davetiye ücretsizdir.</p>
       </div>
     </section>
   );

@@ -3,23 +3,29 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import SplitType from "split-type";
 
 const SCRUB_VIDEO_SRC = "/memoora-hero-scrub.mp4";
 const LERP_FACTOR = 0.12;
 const SEEK_THRESHOLD = 0.015;
-const MOBILE_HEIGHT = "320vh";
-const DESKTOP_HEIGHT = "500vh";
+const MOBILE_HEIGHT = "180svh";
+const DESKTOP_HEIGHT = "380vh";
 
-export function ScrollScrubHero() {
+interface ScrollScrubHeroProps {
+  demoHref?: string;
+}
+
+export function ScrollScrubHero({ demoHref = "#demo" }: ScrollScrubHeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const stickyRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hintRef = useRef<HTMLParagraphElement>(null);
   const copyRef = useRef<HTMLDivElement>(null);
-  const eyebrowRef = useRef<HTMLParagraphElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const line1Ref = useRef<HTMLSpanElement>(null);
+  const line2Ref = useRef<HTMLSpanElement>(null);
   const bodyRef = useRef<HTMLParagraphElement>(null);
+  const noteRef = useRef<HTMLParagraphElement>(null);
+  const actionsRef = useRef<HTMLDivElement>(null);
 
   const targetProgressRef = useRef(0);
   const currentTimeRef = useRef(0);
@@ -51,94 +57,119 @@ export function ScrollScrubHero() {
     };
   }, []);
 
-  /* Hero typography entrance — visual/scrub unchanged */
+  /* Typography entrance only — video/scrub unchanged */
   useLayoutEffect(() => {
     if (reduceMotion || isLoading) return;
 
     const heading = headingRef.current;
     const body = bodyRef.current;
-    const eyebrow = eyebrowRef.current;
     const hint = hintRef.current;
-    if (!heading || !body || !eyebrow || !hint) return;
+    const note = noteRef.current;
+    const actions = actionsRef.current;
+    const line1 = line1Ref.current;
+    const line2 = line2Ref.current;
+    if (!heading || !body || !hint || !line1 || !line2) return;
 
-    gsap.registerPlugin(ScrollTrigger);
+    const words1 = gsap.utils.toArray<HTMLElement>(line1.querySelectorAll(".hero-word"));
+    const words2 = gsap.utils.toArray<HTMLElement>(line2.querySelectorAll(".hero-word"));
+    const ctaItems = actions
+      ? gsap.utils.toArray<HTMLElement>(actions.children)
+      : [];
 
     const ctx = gsap.context(() => {
-      const split = new SplitType(heading, { types: "words", tagName: "span" });
-      const words = split.words ?? [];
-
-      gsap.set([eyebrow, hint], {
+      gsap.set([body, note, hint, ...ctaItems].filter(Boolean), {
         opacity: 0,
-        y: 18,
-        filter: "blur(8px)",
-      });
-      gsap.set(body, { opacity: 1 });
-      const bodyLines = body.querySelectorAll("[data-line]");
-      gsap.set(bodyLines.length ? bodyLines : body, {
-        opacity: 0,
-        y: 22,
+        y: 16,
         filter: "blur(6px)",
       });
-      gsap.set(words, {
+      gsap.set([...words1, ...words2], {
         opacity: 0,
-        y: 45,
+        y: 36,
         rotateX: -8,
-        filter: "blur(10px)",
+        filter: "blur(8px)",
         transformOrigin: "50% 100%",
       });
 
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
-      tl.to(eyebrow, {
-        opacity: 1,
-        y: 0,
-        filter: "blur(0px)",
-        duration: 0.8,
-      });
-
       tl.to(
-        words,
+        words1,
         {
           opacity: 1,
           y: 0,
           rotateX: 0,
           filter: "blur(0px)",
-          duration: 1.1,
-          stagger: 0.09,
+          duration: 1,
+          stagger: 0.08,
         },
-        "-=0.15",
+        0.15,
       );
 
       tl.to(
-        bodyLines.length ? bodyLines : body,
+        words2,
         {
           opacity: 1,
           y: 0,
+          rotateX: 0,
           filter: "blur(0px)",
-          duration: 0.9,
-          stagger: 0.12,
+          duration: 1,
+          stagger: 0.08,
         },
-        "-=0.45",
+        "-=0.72",
       );
 
       tl.to(
-        hint,
-        { opacity: 0.85, y: 0, filter: "blur(0px)", duration: 0.7 },
-        "-=0.25",
+        body,
+        { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.75 },
+        "-=0.35",
       );
 
-      gsap.to(hint, {
-        y: 7,
+      if (note) {
+        tl.to(
+          note,
+          { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.6 },
+          "-=0.25",
+        );
+      }
+
+      if (ctaItems.length) {
+        tl.to(
+          ctaItems,
+          {
+            opacity: 1,
+            y: 0,
+            filter: "blur(0px)",
+            duration: 0.75,
+            stagger: 0.1,
+          },
+          "-=0.15",
+        );
+      }
+
+      tl.to(
+        hint,
+        { opacity: 0.48, y: 0, filter: "blur(0px)", duration: 0.65 },
+        "-=0.2",
+      );
+
+      /* Persist final states — no leftover clip/opacity */
+      tl.set([...words1, ...words2, body, note, ...ctaItems].filter(Boolean), {
+        clearProps: "filter",
         opacity: 1,
+        y: 0,
+        rotateX: 0,
+      });
+
+      gsap.to(hint, {
+        y: 6,
+        opacity: 0.62,
         duration: 1.8,
         yoyo: true,
         repeat: -1,
         ease: "sine.inOut",
-        delay: tl.duration(),
+        delay: tl.duration() * 0.02,
       });
-
-      return () => split.revert();
-    });
+    }, heading);
 
     return () => ctx.revert();
   }, [reduceMotion, isLoading]);
@@ -234,13 +265,13 @@ export function ScrollScrubHero() {
         }
 
         if (hintRef.current) {
-          hintRef.current.style.opacity = String(Math.max(0, 1 - progress * 3.5));
+          hintRef.current.style.opacity = String(Math.max(0, 0.55 - progress * 2.2));
         }
 
         if (copyRef.current) {
           const copyOpacity =
-            progress > 0.82 ? Math.max(0, 1 - (progress - 0.82) / 0.18) : 1;
-          const lift = progress > 0.82 ? (progress - 0.82) * -6 : 0;
+            progress > 0.88 ? Math.max(0, 1 - (progress - 0.88) / 0.12) : 1;
+          const lift = progress > 0.88 ? (progress - 0.88) * -5 : 0;
           copyRef.current.style.opacity = String(copyOpacity);
           copyRef.current.style.transform = `translate3d(0, ${lift}vh, 0)`;
         }
@@ -299,7 +330,7 @@ export function ScrollScrubHero() {
       ref={sectionRef}
       id="hero"
       className={`hero-scrub${reduceMotion ? " hero-scrub--static" : ""}`}
-      style={{ height: reduceMotion ? "100vh" : sectionHeight }}
+      style={{ height: reduceMotion ? "100svh" : sectionHeight }}
       aria-label="Memoora cinematic hero"
     >
       <div ref={stickyRef} className="hero-scrub__sticky">
@@ -335,25 +366,45 @@ export function ScrollScrubHero() {
         </div>
 
         <div ref={copyRef} className="hero-scrub__copy">
-          <p ref={eyebrowRef} className="hero-scrub__label">
-            MEMOORA
-          </p>
-          <h1 ref={headingRef} className="hero-scrub__heading">
-            <span className="hero-scrub__heading-line">Düğün Anıları Artık</span>{" "}
-            <span className="hero-scrub__heading-gold">Yaşıyor</span>
-          </h1>
-          <p ref={bodyRef} className="hero-scrub__supporting">
-            <span data-line>
-              NFC ile açılan premium anı deneyimi. Her mesaj bir yaprak olur,
-            </span>{" "}
-            <span data-line>
-              her fotoğraf ağacın etrafında bir anı ışığına dönüşür.
-            </span>
-          </p>
+          <div className="hero-scrub__copy-inner">
+            <h1 ref={headingRef} className="hero-title">
+              <span ref={line1Ref} className="hero-title-line">
+                <span className="hero-word">Düğün</span>
+                <span className="hero-word">Anıları</span>
+              </span>
+              <span
+                ref={line2Ref}
+                className="hero-title-line hero-title-line--accent"
+              >
+                <span className="hero-word">Artık</span>
+                <span className="hero-word">Yaşıyor</span>
+              </span>
+            </h1>
+
+            <p ref={bodyRef} className="hero-scrub__supporting">
+              Ücretsiz dijital davetiye, interaktif düğün quiz’i ve size özel NFC
+              hatıra ürünleri tek bir deneyimde.
+            </p>
+
+            <p ref={noteRef} className="hero-scrub__micro">
+              <span className="hero-scrub__micro-dot" aria-hidden />
+              Dijital davetiye ücretsiz dahil.
+            </p>
+
+            <div ref={actionsRef} className="hero-scrub__actions">
+              <a href={demoHref} className="hero-cta hero-cta--primary">
+                Demo Düğünü Gör
+              </a>
+              <a href="#davetiye" className="hero-cta hero-cta--secondary">
+                <span className="hero-cta__play" aria-hidden />
+                Nasıl Çalışır?
+              </a>
+            </div>
+          </div>
         </div>
 
         <p ref={hintRef} className="hero-scrub__hint">
-          Keşfetmek için kaydır
+          KEŞFETMEK İÇİN KAYDIR
         </p>
       </div>
     </section>

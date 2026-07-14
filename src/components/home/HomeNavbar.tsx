@@ -4,9 +4,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 const NAV_LINKS = [
-  { href: "#deneyim", label: "Deneyim" },
-  { href: "#nasil-calisir", label: "Dokunuş" },
-  { href: "#ani-agaci", label: "Anı Ağacı" },
+  { href: "#davetiye", label: "Davetiye" },
+  { href: "#quiz", label: "Quiz" },
   { href: "#nfc-urunler", label: "NFC Ürünler" },
   { href: "#demo", label: "Demo" },
 ] as const;

@@ -23,4 +23,7 @@ export const ASSETS = {
   galleryFlourish: "/assets/gallery/memories-flourish.svg",
   /** Quiz Liderleri section — drop your image at public/assets/quiz-leaders-bg.png */
   quizLeadersBg: "/assets/quiz-leaders-bg.png",
+  /** Product product renders */
+  leafMagnet: "/assets/memoora-leaf-magnet.svg",
+  leafKeychain: "/assets/memoora-leaf-keychain.svg",
 } as const;

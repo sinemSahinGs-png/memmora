@@ -12,21 +12,6 @@ import { ScrollReveal } from "@/components/animation/ScrollReveal";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const PANELS = [
-  {
-    title: "Tek dokunuş",
-    text: "Kart, anahtarlık, magnet veya jeton — misafirler fiziksel bir nesneyle özel dünyaya girer.",
-  },
-  {
-    title: "Özel bellek",
-    text: "Her dokunuş çiftin kapalı anı evrenini açar. Uygulama indirme yok; sadece zarif bir köprü.",
-  },
-  {
-    title: "Yaşayan bağ",
-    text: "Ürün, düğün bittikten sonra da hatıraları taşıyan bir kapı olarak kalır.",
-  },
-] as const;
-
 export function NfcExperienceSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const productRef = useRef<HTMLDivElement>(null);
@@ -40,32 +25,68 @@ export function NfcExperienceSection() {
 
       const mm = gsap.matchMedia();
 
-      mm.add("(min-width: 900px)", () => {
-        gsap.to(product, {
-          rotateY: 3,
-          rotateX: -2,
-          scale: 1.02,
-          ease: "none",
-          scrollTrigger: {
-            trigger: section,
-            start: "top center",
-            end: "bottom center",
-            scrub: 0.8,
+      mm.add("(min-width: 1024px)", () => {
+        gsap.fromTo(
+          product,
+          { scale: 1.04, rotateY: -2 },
+          {
+            scale: 1,
+            rotateY: 2,
+            ease: "none",
+            scrollTrigger: {
+              trigger: section,
+              start: "top 70%",
+              end: "bottom 40%",
+              scrub: 0.65,
+            },
           },
-        });
+        );
 
         gsap.fromTo(
           ".cine-nfc__ring",
           { opacity: 0.2, scale: 0.92 },
           {
             opacity: 0.75,
-            scale: 1.08,
+            scale: 1.06,
             ease: "none",
             scrollTrigger: {
               trigger: section,
-              start: "top center",
-              end: "bottom center",
+              start: "top 70%",
+              end: "center center",
               scrub: true,
+            },
+          },
+        );
+
+        gsap.fromTo(
+          ".cine-nfc__annotation-line",
+          { scaleX: 0 },
+          {
+            scaleX: 1,
+            ease: "none",
+            scrollTrigger: {
+              trigger: section,
+              start: "top 60%",
+              end: "top 35%",
+              scrub: true,
+            },
+          },
+        );
+      });
+
+      mm.add("(max-width: 1023px)", () => {
+        gsap.fromTo(
+          product,
+          { scale: 1.04, opacity: 0.7 },
+          {
+            scale: 1,
+            opacity: 1,
+            ease: "none",
+            scrollTrigger: {
+              trigger: product,
+              start: "top 82%",
+              end: "top 40%",
+              scrub: 0.45,
             },
           },
         );
@@ -73,6 +94,7 @@ export function NfcExperienceSection() {
 
       const onMove = (event: PointerEvent) => {
         if (window.matchMedia("(pointer: coarse)").matches) return;
+        if (!window.matchMedia("(min-width: 1024px)").matches) return;
         const rect = product.getBoundingClientRect();
         const x = ((event.clientX - rect.left) / rect.width - 0.5) * 4;
         const y = ((event.clientY - rect.top) / rect.height - 0.5) * -3;
@@ -114,40 +136,42 @@ export function NfcExperienceSection() {
       className="cine-nfc"
       aria-label="NFC ürün deneyimi"
     >
-      <div className="cine-nfc__layout">
+      <div className="cine-nfc__layout cine-container">
         <div ref={productRef} className="cine-nfc__product">
-          <div className="cine-nfc__frame">
+          <div className="cine-nfc__frame visual-stage">
             <Image
               src={ASSETS.landingCardNote}
               alt="Memoora NFC yaprak ürünü"
               fill
-              sizes="(max-width: 900px) 100vw, 44vw"
+              sizes="(max-width: 768px) 88vw, 44vw"
               className="cine-nfc__image"
             />
             <span className="cine-nfc__ring" aria-hidden />
             <span className="cine-nfc__point" aria-hidden />
+            <div className="cine-nfc__annotation">
+              <span className="cine-nfc__annotation-line" aria-hidden />
+              <span className="cine-nfc__annotation-text">NFC Etkileşim Noktası</span>
+            </div>
           </div>
         </div>
 
         <div className="cine-nfc__panels">
-          <p className="cine-eyebrow">NFC Ürünler</p>
+          <p className="cine-eyebrow">Fiziksel Ürün, Dijital Hatıra</p>
           <SplitTextReveal as="h2" className="cine-heading">
-            Bir hatıradan daha fazlası.
+            Hatıranın anahtarı.
           </SplitTextReveal>
           <ScrollReveal>
             <p className="cine-body cine-nfc__lead">
-              Memoora NFC ürünleri, misafirleri çiftin yaşayan anı dünyasına tek
-              dokunuşla bağlar.
+              Memoora anahtarlık, magnet ve kartları çiftin yaşayan anı dünyasını
+              tek dokunuşla açar.
             </p>
           </ScrollReveal>
 
-          {PANELS.map((panel) => (
-            <ScrollReveal key={panel.title} className="cine-nfc__panel" y={22}>
-              <h3>{panel.title}</h3>
-              <p>{panel.text}</p>
-              <span className="cine-gold-line" aria-hidden />
-            </ScrollReveal>
-          ))}
+          <ul className="cine-nfc__labels">
+            <li>Anahtarlık</li>
+            <li>Magnet</li>
+            <li>Anı Kartı</li>
+          </ul>
         </div>
       </div>
     </section>

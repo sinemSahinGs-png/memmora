@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { truncateMessage } from "@/lib/memory-utils";
 import { cn } from "@/lib/utils";
 
@@ -12,14 +12,24 @@ export interface BubbleMemory {
 
 interface FloatingMemoryBubbleProps {
   memories: BubbleMemory[];
+  /** Rise duration in ms (CSS animation should match) */
+  riseMs?: number;
+  popMs?: number;
+  idleMinMs?: number;
+  idleMaxMs?: number;
+  laneStartDelays?: number[];
+  /** Cap simultaneous bubbles to avoid overlap */
+  maxConcurrent?: number;
+  className?: string;
 }
 
-const RISE_MS = 4500;
-const POP_MS = 650;
-const IDLE_MIN_MS = 2200;
-const IDLE_MAX_MS = 4200;
+const DEFAULT_RISE_MS = 4500;
+const DEFAULT_POP_MS = 650;
+const DEFAULT_IDLE_MIN_MS = 2200;
+const DEFAULT_IDLE_MAX_MS = 4200;
 const LANE_COUNT = 3;
 const LANE_IDS = ["a", "b", "c"] as const;
+const DEFAULT_LANE_START_DELAYS = [500, 1800, 3100];
 
 type Phase = "idle" | "rising" | "pop";
 type LaneId = (typeof LANE_IDS)[number];
@@ -36,15 +46,9 @@ const INITIAL_LANE: LaneState = {
   visible: false,
 };
 
-const LANE_START_DELAYS = [500, 1800, 3100];
-
-function randomIdleMs() {
-  return IDLE_MIN_MS + Math.floor(Math.random() * (IDLE_MAX_MS - IDLE_MIN_MS));
-}
-
 function pickMemory(
   memories: BubbleMemory[],
-  excludeIds: string[]
+  excludeIds: string[],
 ): BubbleMemory | null {
   if (memories.length === 0) return null;
   const pool = memories.filter((m) => !excludeIds.includes(m.id));
@@ -52,13 +56,24 @@ function pickMemory(
   return source[Math.floor(Math.random() * source.length)] ?? null;
 }
 
-export function FloatingMemoryBubble({ memories }: FloatingMemoryBubbleProps) {
+export function FloatingMemoryBubble({
+  memories,
+  riseMs = DEFAULT_RISE_MS,
+  popMs = DEFAULT_POP_MS,
+  idleMinMs = DEFAULT_IDLE_MIN_MS,
+  idleMaxMs = DEFAULT_IDLE_MAX_MS,
+  laneStartDelays = DEFAULT_LANE_START_DELAYS,
+  maxConcurrent = LANE_COUNT,
+  className,
+}: FloatingMemoryBubbleProps) {
   const [lanes, setLanes] = useState<LaneState[]>(
-    Array.from({ length: LANE_COUNT }, () => ({ ...INITIAL_LANE }))
+    Array.from({ length: LANE_COUNT }, () => ({ ...INITIAL_LANE })),
   );
   const timersRef = useRef<number[]>([]);
   const visibilityRef = useRef<boolean[]>(Array(LANE_COUNT).fill(false));
   const memoryIdRef = useRef<(string | null)[]>(Array(LANE_COUNT).fill(null));
+  const timingRef = useRef({ riseMs, popMs, idleMinMs, idleMaxMs, maxConcurrent });
+  timingRef.current = { riseMs, popMs, idleMinMs, idleMaxMs, maxConcurrent };
 
   const clearTimers = useCallback(() => {
     timersRef.current.forEach((id) => window.clearTimeout(id));
@@ -68,6 +83,11 @@ export function FloatingMemoryBubble({ memories }: FloatingMemoryBubbleProps) {
   const schedule = useCallback((fn: () => void, ms: number) => {
     const id = window.setTimeout(fn, ms);
     timersRef.current.push(id);
+  }, []);
+
+  const randomIdleMs = useCallback(() => {
+    const { idleMinMs: min, idleMaxMs: max } = timingRef.current;
+    return min + Math.floor(Math.random() * (max - min));
   }, []);
 
   const updateLane = useCallback(
@@ -83,17 +103,24 @@ export function FloatingMemoryBubble({ memories }: FloatingMemoryBubbleProps) {
             memoryIdRef.current[laneIndex] = patch.memory?.id ?? null;
           }
           return next;
-        })
+        }),
       );
     },
-    []
+    [],
   );
 
   const startLane = useCallback(
     (laneIndex: number) => {
       if (memories.length === 0) return;
 
+      const { riseMs: rise, popMs: pop, maxConcurrent: max } = timingRef.current;
       const visiblePeerCount = visibilityRef.current.filter(Boolean).length;
+
+      if (visiblePeerCount >= max) {
+        schedule(() => startLane(laneIndex), randomIdleMs());
+        return;
+      }
+
       if (memories.length === 1 && visiblePeerCount > 0) {
         schedule(() => startLane(laneIndex), randomIdleMs());
         return;
@@ -117,13 +144,13 @@ export function FloatingMemoryBubble({ memories }: FloatingMemoryBubbleProps) {
 
       updateLane(laneIndex, { memory: next, phase: "rising", visible: true });
 
-      schedule(() => updateLane(laneIndex, { phase: "pop" }), RISE_MS);
+      schedule(() => updateLane(laneIndex, { phase: "pop" }), rise);
       schedule(() => {
         updateLane(laneIndex, { visible: false, phase: "idle" });
         schedule(() => startLane(laneIndex), randomIdleMs());
-      }, RISE_MS + POP_MS);
+      }, rise + pop);
     },
-    [memories, schedule, updateLane]
+    [memories, schedule, updateLane, randomIdleMs],
   );
 
   useEffect(() => {
@@ -137,11 +164,11 @@ export function FloatingMemoryBubble({ memories }: FloatingMemoryBubbleProps) {
     const activeLaneCount = Math.min(LANE_COUNT, memories.length);
 
     for (let i = 0; i < activeLaneCount; i += 1) {
-      schedule(() => startLane(i), LANE_START_DELAYS[i] ?? i * 1300);
+      schedule(() => startLane(i), laneStartDelays[i] ?? i * 1300);
     }
 
     return clearTimers;
-  }, [memories, clearTimers, schedule, startLane]);
+  }, [memories, clearTimers, schedule, startLane, laneStartDelays]);
 
   if (memories.length === 0) return null;
 
@@ -152,13 +179,28 @@ export function FloatingMemoryBubble({ memories }: FloatingMemoryBubbleProps) {
           key={LANE_IDS[index]}
           lane={LANE_IDS[index]}
           state={state}
+          riseMs={riseMs}
+          popMs={popMs}
+          className={className}
         />
       ))}
     </>
   );
 }
 
-function BubbleView({ lane, state }: { lane: LaneId; state: LaneState }) {
+function BubbleView({
+  lane,
+  state,
+  riseMs,
+  popMs,
+  className,
+}: {
+  lane: LaneId;
+  state: LaneState;
+  riseMs: number;
+  popMs: number;
+  className?: string;
+}) {
   if (!state.memory || !state.visible) return null;
 
   return (
@@ -166,8 +208,15 @@ function BubbleView({ lane, state }: { lane: LaneId; state: LaneState }) {
       className={cn(
         "floating-memory-bubble",
         `floating-memory-bubble--slot-${lane}`,
-        `floating-memory-bubble--${state.phase}`
+        `floating-memory-bubble--${state.phase}`,
+        className,
       )}
+      style={
+        {
+          "--bubble-rise-ms": `${riseMs}ms`,
+          "--bubble-pop-ms": `${popMs}ms`,
+        } as CSSProperties
+      }
       aria-hidden
     >
       <div className="floating-memory-bubble-glass">

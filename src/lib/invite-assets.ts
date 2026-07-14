@@ -3,7 +3,8 @@
  * Dosyalar: public/assets/invite/
  */
 export const INVITE_ASSETS = {
-  background: "/assets/invite/invite-bg.png",
+  /** Closed-state scenic cover (replaces flat botanical bg) */
+  background: "/assets/invite/invite-cover.png",
   envelope: "/assets/invite/invite-envelope.png",
   openingVideo: "/assets/invite/invite-open.mp4",
   finalPoster: "/assets/invite/invite-open-final.png",

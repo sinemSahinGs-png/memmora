@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 480" fill="none" role="img" aria-labelledby="leafMagnetTitle">
+  <title id="leafMagnetTitle">Ki_iye özel yaprak magnet</title>
+  <defs>
+    <linearGradient id="leafBody" x1="80" y1="40" x2="300" y2="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2A6B4F"/>
+      <stop offset="38%" stop-color="#1A4635"/>
+      <stop offset="72%" stop-color="#0E2A20"/>
+      <stop offset="100%" stop-color="#0A1F18"/>
+    </linearGradient>
+    <linearGradient id="leafEdge" x1="120" y1="30" x2="240" y2="450" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#D4AF37" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#8A6E24" stop-opacity="0.15"/>
+    </linearGradient>
+    <linearGradient id="leafShine" x1="120" y1="60" x2="220" y2="280" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="55%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="leafShadow" x="-20%" y="-10%" width="140%" height="130%">
+      <feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- thickness / back plate -->
+  <path
+    d="M186 28C248 78 318 168 304 286C292 384 230 448 186 464C142 448 80 384 68 286C54 168 124 78 186 28Z"
+    fill="#061410"
+    opacity="0.55"
+    transform="translate(10 8)"
+  />
+
+  <!-- main asymmetric leaf -->
+  <g filter="url(#leafShadow)">
+    <path
+      d="M178 22
+         C236 66 312 152 302 278
+         C294 368 248 430 198 454
+         C188 458 176 458 166 454
+         C116 430 64 360 58 268
+         C50 160 112 70 178 22Z"
+      fill="url(#leafBody)"
+      stroke="url(#leafEdge)"
+      stroke-width="2.2"
+    />
+    <path
+      d="M178 22
+         C236 66 312 152 302 278
+         C294 368 248 430 198 454
+         C188 458 176 458 166 454
+         C116 430 64 360 58 268
+         C50 160 112 70 178 22Z"
+      fill="url(#leafShine)"
+    />
+  </g>
+
+  <!-- stem / petiole -->
+  <path
+    d="M176 448 C174 462 172 470 168 478"
+    stroke="#6E5830"
+    stroke-width="5"
+    stroke-linecap="round"
+  />
+  <path
+    d="M176 448 C180 460 188 468 196 474"
+    stroke="#9A7D3A"
+    stroke-width="2.4"
+    stroke-linecap="round"
+    opacity="0.7"
+  />
+
+  <!-- central vein -->
+  <path
+    d="M180 54 C176 150 174 250 178 430"
+    stroke="#C9A84A"
+    stroke-width="2.1"
+    stroke-linecap="round"
+    opacity="0.55"
+  />
+
+  <!-- side veins -->
+  <g stroke="#B9973F" stroke-width="1.35" stroke-linecap="round" opacity="0.38">
+    <path d="M178 110 C148 128 128 150 112 176"/>
+    <path d="M176 164 C146 186 132 214 124 244"/>
+    <path d="M176 230 C150 252 140 284 138 316"/>
+    <path d="M177 300 C156 320 150 348 152 372"/>
+    <path d="M180 118 C208 136 230 160 246 188"/>
+    <path d="M179 172 C214 194 232 226 242 258"/>
+    <path d="M178 240 C208 262 220 296 224 330"/>
+    <path d="M178 312 C198 334 206 360 208 384"/>
+  </g>
+
+  <!-- embossed plate for initials -->
+  <ellipse cx="178" cy="232" rx="78" ry="62" fill="#0B221A" opacity="0.28"/>
+  <ellipse cx="178" cy="232" rx="74" ry="58" fill="none" stroke="#D4AF37" stroke-opacity="0.18" stroke-width="1"/>
+
+  <!-- integrated couple mark -->
+  <text
+    x="132"
+    y="248"
+    fill="#F3EBD8"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="54"
+    font-weight="500"
+    letter-spacing="0.02em"
+  >V</text>
+  <text
+    x="168"
+    y="242"
+    fill="#D4AF37"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="28"
+    font-weight="500"
+  >&amp;</text>
+  <text
+    x="192"
+    y="248"
+    fill="#F3EBD8"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="54"
+    font-weight="500"
+    letter-spacing="0.02em"
+  >U</text>
+
+  <!-- date -->
+  <text
+    x="178"
+    y="288"
+    text-anchor="middle"
+    fill="#E8D9A8"
+    fill-opacity="0.62"
+    font-family="ui-sans-serif, system-ui, sans-serif"
+    font-size="11"
+    letter-spacing="0.22em"
+  >22.08.2026</text>
+
+  <!-- NFC point -->
+  <circle cx="178" cy="348" r="7" fill="#F1D889" opacity="0.7"/>
+  <circle cx="178" cy="348" r="14" fill="none" stroke="#F1D889" stroke-opacity="0.35" stroke-width="1.5"/>
+</svg>

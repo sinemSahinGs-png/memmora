@@ -51,15 +51,15 @@ export function SplitTextReveal({
       if (!targets?.length) return;
 
       gsap.set(targets, {
-        opacity: 0,
-        y,
-        filter: "blur(8px)",
+        opacity: 0.55,
+        y: Math.min(y, 18),
+        filter: "blur(2px)",
       });
 
       gsap.to(targets, {
         opacity: 1,
         y: 0,
-        filter: "blur(0px)",
+        filter: "none",
         duration: scrub ? 1 : 1.05,
         stagger,
         ease: "power3.out",
@@ -75,6 +75,13 @@ export function SplitTextReveal({
               start,
               toggleActions: "play none none none",
             },
+        onComplete: () => {
+          gsap.set(targets, {
+            opacity: 1,
+            y: 0,
+            clearProps: "filter,transform",
+          });
+        },
       });
 
       return () => split.revert();

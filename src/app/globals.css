@@ -632,11 +632,11 @@ body {
 }
 
 .floating-memory-bubble--rising {
-  animation: bubble-rise 4.5s cubic-bezier(0.25, 0.55, 0.4, 1) forwards;
+  animation: bubble-rise var(--bubble-rise-ms, 4.5s) cubic-bezier(0.25, 0.55, 0.4, 1) forwards;
 }
 
 .floating-memory-bubble--pop {
-  animation: bubble-pop 0.65s ease-out forwards;
+  animation: bubble-pop var(--bubble-pop-ms, 0.65s) ease-out forwards;
 }
 
 @keyframes bubble-rise {
