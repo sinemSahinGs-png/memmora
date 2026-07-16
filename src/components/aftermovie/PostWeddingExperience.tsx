@@ -45,7 +45,8 @@ export function PostWeddingExperience({
     [aftermovie.finalVideoUrl, couple.slug],
   );
 
-  const musicUrl = aftermovie.music?.fileUrl ?? null;
+  const musicUrl =
+    aftermovie.music?.fileUrl?.trim() || "/audio/memoora-after.mp3";
   const dateLabel = couple.weddingDate
     ? new Date(
         couple.weddingDate.includes("T")

@@ -28,6 +28,8 @@ interface AftermovieSlideshowProps {
   className?: string;
 }
 
+const DEFAULT_AFTER_MUSIC = "/audio/memoora-after.mp3";
+
 function photoHoldMs(preset: AftermovieDurationPreset | undefined): number {
   switch (preset) {
     case "short":
@@ -65,58 +67,102 @@ export function AftermovieSlideshow({
   const audioRef = useRef<HTMLAudioElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const completedOnceRef = useRef(false);
+  const holdTimerRef = useRef<number | null>(null);
+  const pausedRef = useRef(false);
   const hold = photoHoldMs(durationPreset);
+
+  const resolvedMusicUrl = useMemo(() => {
+    const fromProp = musicUrl?.trim();
+    if (fromProp) return fromProp;
+    return autoStartMusic ? DEFAULT_AFTER_MUSIC : null;
+  }, [autoStartMusic, musicUrl]);
 
   const ordered = useMemo(
     () => slides.filter((s) => Boolean(s.src)),
     [slides],
   );
 
-  const tryPlayMusic = () => {
+  const playMusic = (opts?: { ignorePause?: boolean }) => {
     const audio = audioRef.current;
-    if (!audio || !musicUrl || paused) return;
-    audio.muted = false;
-    audio.volume = 0.55;
+    if (!audio || !resolvedMusicUrl) return;
+    if (pausedRef.current && !opts?.ignorePause) return;
+
     audio.loop = true;
-    void audio.play().then(() => setMuted(false)).catch(() => undefined);
+    audio.volume = 0.55;
+
+    const run = async () => {
+      try {
+        audio.muted = false;
+        await audio.play();
+        setMuted(false);
+        return;
+      } catch {
+        /* try muted start then unmute — some browsers allow this path */
+      }
+      try {
+        audio.muted = true;
+        await audio.play();
+        audio.muted = false;
+        await audio.play();
+        setMuted(false);
+      } catch {
+        /* wait for a real user gesture */
+      }
+    };
+
+    void run();
   };
 
   useEffect(() => {
+    pausedRef.current = paused;
+  }, [paused]);
+
+  useEffect(() => {
     const audio = audioRef.current;
-    if (!audio || !musicUrl) return;
+    if (!audio || !resolvedMusicUrl) return;
     audio.loop = true;
     audio.volume = 0.55;
     if (paused) {
       audio.pause();
       return;
     }
-    if (muted && !autoStartMusic) {
-      audio.pause();
-      return;
+    if (autoStartMusic || !muted) {
+      playMusic({ ignorePause: true });
     }
-    audio.muted = false;
-    void audio.play().then(() => setMuted(false)).catch(() => undefined);
-  }, [autoStartMusic, musicUrl, muted, paused, phase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate phase/music sync
+  }, [autoStartMusic, muted, paused, phase, resolvedMusicUrl]);
 
   useEffect(() => {
-    if (!autoStartMusic || !musicUrl) return;
-    tryPlayMusic();
+    if (!autoStartMusic || !resolvedMusicUrl) return;
+
+    playMusic({ ignorePause: true });
+
     const unlock = () => {
-      tryPlayMusic();
-      window.removeEventListener("pointerdown", unlock);
-      window.removeEventListener("keydown", unlock);
-      window.removeEventListener("touchstart", unlock);
+      if (!pausedRef.current) {
+        playMusic({ ignorePause: true });
+      }
     };
-    window.addEventListener("pointerdown", unlock, { once: true });
-    window.addEventListener("keydown", unlock, { once: true });
-    window.addEventListener("touchstart", unlock, { once: true });
+
+    window.addEventListener("pointerdown", unlock);
+    window.addEventListener("touchstart", unlock, { passive: true });
+    window.addEventListener("keydown", unlock);
+
+    const retry = window.setInterval(() => {
+      if (pausedRef.current) return;
+      const audio = audioRef.current;
+      if (audio && audio.paused) {
+        playMusic({ ignorePause: true });
+      }
+    }, 1200);
+
     return () => {
       window.removeEventListener("pointerdown", unlock);
-      window.removeEventListener("keydown", unlock);
       window.removeEventListener("touchstart", unlock);
+      window.removeEventListener("keydown", unlock);
+      window.clearInterval(retry);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only unlock
-  }, [autoStartMusic, musicUrl]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount unlock
+  }, [autoStartMusic, resolvedMusicUrl]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -184,15 +230,32 @@ export function AftermovieSlideshow({
   const currentSlide =
     phase.kind === "slide" ? ordered[phase.index] ?? null : null;
 
+  const clearHoldTimer = () => {
+    if (holdTimerRef.current != null) {
+      window.clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+  };
+
   const holdPause = (event: PointerEvent<HTMLDivElement>) => {
     event.currentTarget.setPointerCapture(event.pointerId);
-    setPaused(true);
+    // First touch unlocks audio; only a sustained hold pauses.
+    playMusic({ ignorePause: true });
+    clearHoldTimer();
+    holdTimerRef.current = window.setTimeout(() => {
+      pausedRef.current = true;
+      setPaused(true);
+    }, 200);
   };
+
   const releasePause = (event: PointerEvent<HTMLDivElement>) => {
+    clearHoldTimer();
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
+    pausedRef.current = false;
     setPaused(false);
+    playMusic({ ignorePause: true });
   };
 
   if (ordered.length === 0) {
@@ -207,13 +270,13 @@ export function AftermovieSlideshow({
 
   return (
     <div className={cn("aftermovie-slideshow", className)}>
-      {musicUrl ? (
+      {resolvedMusicUrl ? (
         <audio
           ref={audioRef}
-          src={musicUrl}
+          src={resolvedMusicUrl}
           preload="auto"
           autoPlay={autoStartMusic}
-          muted={muted && !autoStartMusic}
+          playsInline
         />
       ) : null}
 
@@ -227,7 +290,12 @@ export function AftermovieSlideshow({
         onPointerDown={holdPause}
         onPointerUp={releasePause}
         onPointerCancel={releasePause}
-        onPointerLeave={releasePause}
+        onLostPointerCapture={() => {
+          clearHoldTimer();
+          pausedRef.current = false;
+          setPaused(false);
+          playMusic({ ignorePause: true });
+        }}
         onContextMenu={(e) => e.preventDefault()}
         role="presentation"
       >
@@ -291,18 +359,16 @@ export function AftermovieSlideshow({
 
       {showChrome ? (
         <div className="aftermovie-slideshow__controls">
-          {!autoStartMusic ? (
-            <button
-              type="button"
-              onClick={() => {
-                setMuted((m) => !m);
-                void audioRef.current?.play().catch(() => undefined);
-              }}
-              aria-label={muted ? "Sesi aç" : "Sesi kapat"}
-            >
-              {muted ? "Sesi Aç" : "Ses Açık"}
-            </button>
-          ) : null}
+          <button
+            type="button"
+            onClick={() => {
+              setMuted((m) => !m);
+              playMusic({ ignorePause: true });
+            }}
+            aria-label={muted ? "Sesi aç" : "Sesi kapat"}
+          >
+            {muted ? "Sesi Aç" : "Ses Açık"}
+          </button>
           {showArchiveLinks ? (
             <a href="#gallery" className="aftermovie-slideshow__link">
               Anılara Devam Et
