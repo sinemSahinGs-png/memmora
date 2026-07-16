@@ -644,39 +644,52 @@
   color: rgba(245, 241, 232, 0.88);
 }
 
-.aftermovie-bgm__audio {
-  position: absolute;
-  width: 0;
-  height: 0;
-  opacity: 0;
+.aftermovie-bgm {
+  position: fixed;
+  z-index: 9999;
+  left: 50%;
+  bottom: max(28px, env(safe-area-inset-bottom, 0px) + 20px);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   pointer-events: none;
 }
 
 .aftermovie-bgm__unlock {
-  position: fixed;
-  z-index: 80;
-  left: 50%;
-  bottom: max(22px, env(safe-area-inset-bottom, 0px) + 16px);
-  transform: translateX(-50%);
-  min-height: 48px;
-  padding: 0 22px;
+  pointer-events: auto;
+  min-height: 52px;
+  min-width: 148px;
+  padding: 0 26px;
   border: 1px solid rgba(226, 199, 103, 0.55);
   border-radius: 999px;
   background: linear-gradient(110deg, #e1c467, #cfa83d);
   color: #07110d;
-  font-size: 0.78rem;
-  font-weight: 650;
+  font-size: 0.8rem;
+  font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   cursor: pointer;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .aftermovie-bgm__unlock--on {
-  background: rgba(7, 17, 13, 0.82);
-  color: rgba(226, 199, 103, 0.95);
-  border-color: rgba(226, 199, 103, 0.4);
+  background: rgba(7, 17, 13, 0.9);
+  color: rgba(226, 199, 103, 0.98);
+  border-color: rgba(226, 199, 103, 0.45);
+}
+
+.aftermovie-bgm__error {
+  pointer-events: none;
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #f5f1e8;
+  font-size: 0.75rem;
 }
 
 .post-wedding__nav {

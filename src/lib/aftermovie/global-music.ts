@@ -28,30 +28,35 @@ function mapMusic(row: {
  * Never accepts couple-selected music.
  */
 export async function getGlobalAftermovieMusic(): Promise<AftermovieMusic | null> {
-  const envUrl = process.env.AFTERMOVIE_GLOBAL_MUSIC_URL?.trim();
-  if (envUrl) {
-    return {
-      id: "env-global",
-      title:
-        process.env.AFTERMOVIE_GLOBAL_MUSIC_TITLE?.trim() ||
-        "Memoora After Theme",
-      artist: process.env.AFTERMOVIE_GLOBAL_MUSIC_ARTIST?.trim() || "Memoora",
-      fileUrl: envUrl,
-      storageKey: process.env.AFTERMOVIE_GLOBAL_MUSIC_STORAGE_KEY?.trim() || null,
-      durationSeconds: process.env.AFTERMOVIE_GLOBAL_MUSIC_DURATION
-        ? Number(process.env.AFTERMOVIE_GLOBAL_MUSIC_DURATION)
-        : null,
-      licenseSource:
-        process.env.AFTERMOVIE_GLOBAL_MUSIC_LICENSE?.trim() ||
-        "Memoora licensed",
-      isActive: true,
-    };
+  const fallbackUrl = "/audio/memoora-after.mp3";
+  const envUrl = process.env.AFTERMOVIE_GLOBAL_MUSIC_URL?.trim() || fallbackUrl;
+
+  // Always prefer env / shipped file — never rely on missing seed placeholders alone.
+  const envMusic: AftermovieMusic = {
+    id: "env-global",
+    title:
+      process.env.AFTERMOVIE_GLOBAL_MUSIC_TITLE?.trim() ||
+      "Memoora After Theme",
+    artist: process.env.AFTERMOVIE_GLOBAL_MUSIC_ARTIST?.trim() || "Memoora",
+    fileUrl: envUrl,
+    storageKey: process.env.AFTERMOVIE_GLOBAL_MUSIC_STORAGE_KEY?.trim() || null,
+    durationSeconds: process.env.AFTERMOVIE_GLOBAL_MUSIC_DURATION
+      ? Number(process.env.AFTERMOVIE_GLOBAL_MUSIC_DURATION)
+      : null,
+    licenseSource:
+      process.env.AFTERMOVIE_GLOBAL_MUSIC_LICENSE?.trim() ||
+      "Memoora licensed",
+    isActive: true,
+  };
+
+  // If explicitly configured, use it.
+  if (process.env.AFTERMOVIE_GLOBAL_MUSIC_URL?.trim()) {
+    return envMusic;
   }
 
   const client = createServiceRoleClient();
 
   try {
-    // Prefer explicit global default when column exists
     const { data: globalRow, error: globalError } = await client
       .from("aftermovie_music")
       .select("*")
@@ -60,13 +65,19 @@ export async function getGlobalAftermovieMusic(): Promise<AftermovieMusic | null
       .maybeSingle();
 
     if (!globalError && globalRow) {
-      return mapMusic(globalRow as Parameters<typeof mapMusic>[0]);
+      const mapped = mapMusic(globalRow as Parameters<typeof mapMusic>[0]);
+      if (
+        mapped.fileUrl.includes("aftermovie-soft-emerald") ||
+        mapped.fileUrl.includes("aftermovie-ivory-evening")
+      ) {
+        return { ...mapped, fileUrl: fallbackUrl };
+      }
+      return mapped;
     }
   } catch {
     /* is_global_default column may be missing before migration */
   }
 
-  // Fallback: first active track
   const { data: fallback, error } = await client
     .from("aftermovie_music")
     .select("*")
@@ -77,7 +88,18 @@ export async function getGlobalAftermovieMusic(): Promise<AftermovieMusic | null
 
   if (error) {
     console.error("[global aftermovie music]", error);
-    return null;
+    return envMusic;
   }
-  return fallback ? mapMusic(fallback as Parameters<typeof mapMusic>[0]) : null;
+
+  if (!fallback) return envMusic;
+
+  const mapped = mapMusic(fallback as Parameters<typeof mapMusic>[0]);
+  if (
+    !mapped.fileUrl ||
+    mapped.fileUrl.includes("aftermovie-soft-emerald") ||
+    mapped.fileUrl.includes("aftermovie-ivory-evening")
+  ) {
+    return { ...mapped, fileUrl: fallbackUrl };
+  }
+  return mapped;
 }

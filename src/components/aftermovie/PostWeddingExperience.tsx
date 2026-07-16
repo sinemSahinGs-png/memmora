@@ -8,7 +8,7 @@ import {
   AftermovieSlideshow,
   mediaItemsToSlides,
 } from "./AftermovieSlideshow";
-import { AftermovieBgm, DEFAULT_AFTER_MUSIC } from "./AftermovieBgm";
+import { AftermovieBgm, DEFAULT_AFTER_MUSIC, resolveAftermovieMusicUrl } from "./AftermovieBgm";
 import { getCoupleDisplayTitle } from "@/lib/couple-utils";
 import {
   getAftermoviePlaybackPath,
@@ -46,8 +46,9 @@ export function PostWeddingExperience({
     [aftermovie.finalVideoUrl, couple.slug],
   );
 
-  const musicUrl =
-    aftermovie.music?.fileUrl?.trim() || DEFAULT_AFTER_MUSIC;
+  const musicUrl = resolveAftermovieMusicUrl(
+    aftermovie.music?.fileUrl?.trim() || DEFAULT_AFTER_MUSIC,
+  );
 
   const dateLabel = couple.weddingDate
     ? new Date(

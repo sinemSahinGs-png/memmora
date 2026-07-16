@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export const DEFAULT_AFTER_MUSIC = "/audio/memoora-after.mp3";
 
@@ -9,78 +9,119 @@ interface AftermovieBgmProps {
   active?: boolean;
 }
 
-function toAbsoluteMusicUrl(src?: string | null): string {
-  const raw = (src?.trim() || DEFAULT_AFTER_MUSIC).trim();
-  if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
-  if (typeof window !== "undefined") {
-    return new URL(raw, window.location.origin).href;
+/** Prefer the known shipped file when DB still points at missing seed URLs. */
+export function resolveAftermovieMusicUrl(src?: string | null): string {
+  const raw = (src?.trim() || "").trim();
+  if (!raw) return DEFAULT_AFTER_MUSIC;
+  if (
+    raw.includes("aftermovie-soft-emerald") ||
+    raw.includes("aftermovie-ivory-evening")
+  ) {
+    return DEFAULT_AFTER_MUSIC;
   }
   return raw;
 }
 
+function toAbsolute(url: string): string {
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  if (typeof window !== "undefined") {
+    return new URL(url, window.location.origin).href;
+  }
+  return url;
+}
+
 /**
- * MEMOORA AFTER background music with a visible unlock button for mobile browsers.
+ * MEMOORA AFTER soundtrack with a reliable tap-to-play control.
+ * Creates/plays Audio inside the click handler (required for iOS).
  */
 export function AftermovieBgm({ src, active = true }: AftermovieBgmProps) {
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
-
-  const tryPlay = useCallback(() => {
-    const el = audioRef.current;
-    if (!el) return false;
-    el.muted = false;
-    el.volume = 0.6;
-    void el
-      .play()
-      .then(() => setPlaying(true))
-      .catch(() => setPlaying(false));
-    return true;
-  }, []);
+  const [error, setError] = useState<string | null>(null);
+  const url = resolveAftermovieMusicUrl(src);
 
   useEffect(() => {
     if (!active) return;
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const url = toAbsoluteMusicUrl(src);
-    if (audio.getAttribute("data-src") !== url) {
-      audio.src = url;
-      audio.setAttribute("data-src", url);
-    }
-    audio.loop = true;
-    audio.preload = "auto";
-    audio.volume = 0.6;
-    audio.muted = false;
-
-    const onPlay = () => setPlaying(true);
-    const onPause = () => setPlaying(false);
-
-    audio.addEventListener("play", onPlay);
-    audio.addEventListener("playing", onPlay);
-    audio.addEventListener("pause", onPause);
-    audio.load();
-    tryPlay();
-
     return () => {
-      audio.removeEventListener("play", onPlay);
-      audio.removeEventListener("playing", onPlay);
-      audio.removeEventListener("pause", onPause);
-      audio.pause();
+      const el = audioRef.current;
+      if (el) {
+        el.pause();
+        el.src = "";
+      }
+      audioRef.current = null;
     };
-  }, [active, src, tryPlay]);
+  }, [active, url]);
 
   if (!active) return null;
 
-  return (
-    <>
-      <audio
-        ref={audioRef}
-        preload="auto"
-        loop
-        playsInline
-        className="aftermovie-bgm__audio"
-      />
+  const startMusic = () => {
+    setError(null);
+    const absolute = toAbsolute(url);
 
+    // Reuse one element, but ensure play() is invoked in this click stack.
+    let el = audioRef.current;
+    if (!el) {
+      el = new Audio();
+      el.loop = true;
+      el.preload = "auto";
+      audioRef.current = el;
+      el.addEventListener("playing", () => setPlaying(true));
+      el.addEventListener("pause", () => setPlaying(false));
+      el.addEventListener("ended", () => setPlaying(false));
+      el.addEventListener("error", () => {
+        setPlaying(false);
+        setError("Müzik yüklenemedi");
+      });
+    }
+
+    if (!el.src || el.src !== absolute) {
+      el.src = absolute;
+    }
+    el.src = absolute;
+    el.muted = false;
+    el.volume = 0.7;
+
+    const playPromise = el.play();
+    if (playPromise !== undefined) {
+      void playPromise
+        .then(() => {
+          setPlaying(true);
+          setError(null);
+        })
+        .catch((err: unknown) => {
+          setPlaying(false);
+          const message =
+            err instanceof Error ? err.message : "Ses başlatılamadı";
+          setError(message);
+          // Last resort: recreate element inside the same gesture
+          try {
+            const fresh = new Audio(absolute);
+            fresh.loop = true;
+            fresh.volume = 0.7;
+            audioRef.current = fresh;
+            void fresh.play().then(() => {
+              setPlaying(true);
+              setError(null);
+            });
+          } catch {
+            setError("Tarayıcı sesi engelledi");
+          }
+        });
+    }
+  };
+
+  const toggle = () => {
+    const el = audioRef.current;
+    if (el && !el.paused) {
+      el.pause();
+      setPlaying(false);
+      return;
+    }
+    startMusic();
+  };
+
+  return (
+    <div className="aftermovie-bgm">
       <button
         type="button"
         className={
@@ -88,27 +129,17 @@ export function AftermovieBgm({ src, active = true }: AftermovieBgmProps) {
             ? "aftermovie-bgm__unlock aftermovie-bgm__unlock--on"
             : "aftermovie-bgm__unlock"
         }
-        onClick={() => {
-          const el = audioRef.current;
-          if (!el) return;
-          if (!el.paused) {
-            el.pause();
-            setPlaying(false);
-            return;
-          }
-          // Synchronous play() inside click — required on iOS
-          el.muted = false;
-          el.volume = 0.6;
-          void el
-            .play()
-            .then(() => setPlaying(true))
-            .catch(() => setPlaying(false));
-        }}
+        onClick={toggle}
         aria-pressed={playing}
         aria-label={playing ? "Sesi kapat" : "Sesi aç"}
       >
         {playing ? "Ses Açık" : "Sesi Aç"}
       </button>
-    </>
+      {error ? (
+        <p className="aftermovie-bgm__error" role="status">
+          {error}
+        </p>
+      ) : null}
+    </div>
   );
 }
