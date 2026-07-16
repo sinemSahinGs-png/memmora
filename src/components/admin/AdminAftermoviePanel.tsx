@@ -14,11 +14,7 @@ import {
   AFTERMOVIE_VIDEO_MAX,
   AFTERMOVIE_STATUS_LABELS,
 } from "@/lib/aftermovie/types";
-import {
-  adminStatusLabel,
-  getAftermoviePosterPath,
-  isSlideshowFilm,
-} from "@/lib/aftermovie/lifecycle";
+import { adminStatusLabel } from "@/lib/aftermovie/lifecycle";
 import { formatDisplayDate } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import type { SelectableGuestMedia } from "@/lib/supabase/aftermovie";
@@ -28,12 +24,7 @@ import {
   getMediaProxyViewUrl,
   isVideoMedia,
 } from "@/lib/admin-utils";
-import { getMediaViewUrl } from "@/lib/admin-media-urls";
 import { AdminConfirmModal } from "./AdminConfirmModal";
-import {
-  AftermovieSlideshow,
-  mediaItemsToSlides,
-} from "@/components/aftermovie/AftermovieSlideshow";
 interface AdminAftermoviePanelProps {
   couple: Couple;
   /** Same guest media source as Galeri tab — used as reliable fallback. */
@@ -96,11 +87,8 @@ export function AdminAftermoviePanel({
   const [publishAt, setPublishAt] = useState("");
   const [filter, setFilter] = useState<MediaFilter>("all");
   const [providerMessage, setProviderMessage] = useState("");
-  const [revisionNote, setRevisionNote] = useState("");
   const [submitConfirmOpen, setSubmitConfirmOpen] = useState(false);
-  const [editUnlocked, setEditUnlocked] = useState(false);
   const [brokenThumbs, setBrokenThumbs] = useState<Record<string, boolean>>({});
-  const [previewOpen, setPreviewOpen] = useState(false);
 
   const fallbackSelectable = useMemo(
     () => contributionsToSelectable(contributions, couple.slug),
@@ -142,7 +130,6 @@ export function AdminAftermoviePanel({
         (am.publishAt ?? am.recommendedPublishAt ?? "").slice(0, 16),
       );
       setProviderMessage(json.providerMessage ?? "");
-      setEditUnlocked(false);
     } catch (error) {
       // Fallback grid from already-loaded gallery contributions
       if (fallbackSelectable.length > 0) {
@@ -213,37 +200,9 @@ export function AdminAftermoviePanel({
   }, [filter, selectable, selectedIds]);
 
   const status = aftermovie?.status ?? "draft";
-  const lockedStatuses = new Set([
-    "waiting_for_production",
-    "submitted",
-    "queued",
-    "rendering",
-    "scheduled",
-    "published",
-  ]);
-  const freelyEditable =
-    status === "draft" ||
-    status === "selecting" ||
-    status === "revision_requested" ||
-    status === "failed" ||
-    status === "unpublished" ||
-    status === "ready" ||
-    status === "waiting_for_production" ||
-    status === "submitted";
-
-  const selectionLocked =
-    !editUnlocked && lockedStatuses.has(status) && !freelyEditable;
-
-  const canEditSelection = freelyEditable || editUnlocked || !selectionLocked;
-
-  const hardLocked =
-    status === "queued" ||
-    status === "rendering" ||
-    status === "scheduled" ||
-    status === "published";
-
-  const readyForReview =
-    status === "ready" || status === "scheduled" || status === "published";
+  /** Only lock while a render job is in flight. */
+  const hardLocked = status === "queued" || status === "rendering";
+  const canEditSelection = !hardLocked;
 
   const effectivePosterId =
     posterMediaId && selectedIds.includes(posterMediaId)
@@ -251,7 +210,7 @@ export function AdminAftermoviePanel({
       : selectedIds.find((id) => mediaTypeById.get(id) !== "video") ?? null;
 
   const submitBlockedReason = hardLocked
-    ? "Film yayın/üretim sırasında kilitli."
+    ? "Film şu an üretiliyor. Bitince tekrar düzenleyebilirsiniz."
     : photoCount < AFTERMOVIE_PHOTO_MIN
       ? `En az ${AFTERMOVIE_PHOTO_MIN} fotoğraf seçin (şimdi ${photoCount}).`
       : selectedIds.length === 0
@@ -388,19 +347,6 @@ export function AdminAftermoviePanel({
     );
   }
 
-  const posterSrc = getAftermoviePosterPath(couple.slug);
-  const slideshowPreview = isSlideshowFilm(aftermovie) || status === "ready";
-  const previewSlides = mediaItemsToSlides(
-    (aftermovie?.media ?? []).map((m) => ({
-      ...m,
-      proxyUrl:
-        m.proxyUrl ||
-        selectable.find((s) => s.mediaId === m.mediaId)?.proxyUrl ||
-        getMediaViewUrl(m.mediaId, couple.slug),
-    })),
-    couple.slug,
-  );
-
   return (
     <div className="admin-aftermovie">
       {/* 1. Film Durumu */}
@@ -460,111 +406,6 @@ export function AdminAftermoviePanel({
           </div>
         </dl>
       </section>
-
-      {readyForReview ? (
-        <section className="admin-premium-card">
-          <h3 className="admin-aftermovie__section-title">
-            {status === "published"
-              ? "Düğün filminiz yayında."
-              : status === "scheduled"
-                ? "Düğün filminiz yayın için zamanlandı."
-                : "Düğün filminiz ön izlemeye hazır."}
-          </h3>
-          <p className="admin-aftermovie__hint">
-            {status === "published"
-              ? "NFC sayfanızda slayt filminiz görünür. İsterseniz aşağıdan ön izleyebilirsiniz."
-              : status === "scheduled"
-                ? "Yayın tarihi gelince NFC sayfasında otomatik açılır. Yeniden göndermenize gerek yok."
-                : slideshowPreview
-                  ? "After’ı Hazırla deyince slayt otomatik oluşur ve yayın tarihine göre yayınlanır."
-                  : "Aşağıdan filmi izleyebilirsiniz."}
-          </p>
-          {slideshowPreview && previewSlides.length > 0 ? (
-            <>
-              <button
-                type="button"
-                className="admin-premium-interactive"
-                onClick={() => setPreviewOpen((open) => !open)}
-              >
-                {previewOpen ? "Ön izlemeyi kapat" : "Filmi ön izle"}
-              </button>
-              {previewOpen ? (
-                <AftermovieSlideshow
-                  className="admin-aftermovie__preview-slideshow"
-                  slides={previewSlides}
-                  title={couple.displayTitle}
-                  openingText={openingText}
-                  closingText={closingText}
-                  weddingDateLabel={
-                    couple.weddingDate
-                      ? formatDisplayDate(couple.weddingDate)
-                      : null
-                  }
-                  durationPreset={durationPreset}
-                  posterUrl={posterSrc}
-                />
-              ) : null}
-            </>
-          ) : null}
-          {status === "ready" ? (
-            <div className="admin-aftermovie__actions">
-              <button
-                type="button"
-                className="admin-premium-interactive"
-                disabled={saving}
-                onClick={() =>
-                  void postAction("approve", {
-                    publishAt: publishAt
-                      ? new Date(publishAt).toISOString()
-                      : null,
-                  }).then((r) => {
-                    if (r?.message) onToast?.(r.message);
-                    return load();
-                  })
-                }
-              >
-                Şimdi Yayınla / Zamanla
-              </button>
-            </div>
-          ) : null}
-          <div className="admin-aftermovie__actions">
-            <button
-              type="button"
-              className="admin-premium-interactive"
-              disabled={saving}
-              onClick={() =>
-                void postAction("schedule", {
-                  publishAt: publishAt
-                    ? new Date(publishAt).toISOString()
-                    : null,
-                })
-              }
-            >
-              Yayın Tarihini Kaydet
-            </button>
-          </div>
-          <label className="admin-aftermovie__field">
-            Düzenleme talebi
-            <textarea
-              value={revisionNote}
-              onChange={(e) => setRevisionNote(e.target.value)}
-              rows={3}
-            />
-          </label>
-          <button
-            type="button"
-            className="admin-premium-interactive"
-            disabled={saving || !revisionNote.trim()}
-            onClick={() =>
-              void postAction("request-revision", { revisionNote }).then(() =>
-                load(),
-              )
-            }
-          >
-            Düzenleme Talep Et
-          </button>
-        </section>
-      ) : null}
 
       {/* 2. Filmde Kullanılacak Anılar */}
       <section className="admin-premium-card admin-aftermovie__picker">
@@ -702,16 +543,6 @@ export function AdminAftermoviePanel({
             })}
           </div>
         )}
-
-        {!canEditSelection ? (
-          <button
-            type="button"
-            className="admin-premium-interactive admin-aftermovie__unlock"
-            onClick={() => setEditUnlocked(true)}
-          >
-            Seçimleri Düzenle
-          </button>
-        ) : null}
       </section>
 
       {/* 3. Seçilen Anılar */}

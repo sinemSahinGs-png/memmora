@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { AftermovieDurationPreset, AftermovieMediaItem } from "@/lib/aftermovie/types";
 import { cn } from "@/lib/utils";
 import { FadeWords, fadeWordsDurationMs } from "./FadeWords";
@@ -63,11 +63,9 @@ export function AftermovieSlideshow({
   void _autoStartMusic;
 
   const [phase, setPhase] = useState<Phase>({ kind: "opening" });
-  const [paused, setPaused] = useState(false);
   const [error, setError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const completedOnceRef = useRef(false);
-  const holdTimerRef = useRef<number | null>(null);
   const hold = photoHoldMs(durationPreset);
 
   const ordered = useMemo(
@@ -80,15 +78,11 @@ export function AftermovieSlideshow({
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    if (paused) {
-      video.pause();
-    } else {
-      void video.play().catch(() => undefined);
-    }
-  }, [paused, phase]);
+    void video.play().catch(() => undefined);
+  }, [phase]);
 
   useEffect(() => {
-    if (paused || ordered.length === 0) return;
+    if (ordered.length === 0) return;
 
     if (phase.kind === "opening") {
       const mobile =
@@ -147,33 +141,10 @@ export function AftermovieSlideshow({
       }, hold);
       return () => window.clearTimeout(t);
     }
-  }, [dateText, hold, onComplete, ordered, paused, phase]);
+  }, [dateText, hold, onComplete, ordered, phase]);
 
   const currentSlide =
     phase.kind === "slide" ? ordered[phase.index] ?? null : null;
-
-  const clearHoldTimer = () => {
-    if (holdTimerRef.current != null) {
-      window.clearTimeout(holdTimerRef.current);
-      holdTimerRef.current = null;
-    }
-  };
-
-  const holdPause = (event: PointerEvent<HTMLDivElement>) => {
-    event.currentTarget.setPointerCapture(event.pointerId);
-    clearHoldTimer();
-    holdTimerRef.current = window.setTimeout(() => {
-      setPaused(true);
-    }, 280);
-  };
-
-  const releasePause = (event: PointerEvent<HTMLDivElement>) => {
-    clearHoldTimer();
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-    setPaused(false);
-  };
 
   if (ordered.length === 0) {
     return (
@@ -194,13 +165,6 @@ export function AftermovieSlideshow({
 
       <div
         className="aftermovie-slideshow__stage"
-        onPointerDown={holdPause}
-        onPointerUp={releasePause}
-        onPointerCancel={releasePause}
-        onLostPointerCapture={() => {
-          clearHoldTimer();
-          setPaused(false);
-        }}
         onContextMenu={(e) => e.preventDefault()}
         role="presentation"
       >
@@ -241,7 +205,7 @@ export function AftermovieSlideshow({
             src={currentSlide.src}
             playsInline
             muted
-            autoPlay={!paused}
+            autoPlay
             draggable={false}
             onEnded={() => {
               if (phase.kind !== "slide") return;

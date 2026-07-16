@@ -173,26 +173,15 @@ export async function POST(req: Request, context: RouteContext) {
       }
 
       const hardLocked =
-        existing.status === "queued" ||
-        existing.status === "rendering" ||
-        existing.status === "scheduled" ||
-        existing.status === "published";
+        existing.status === "queued" || existing.status === "rendering";
 
       if (hardLocked) {
-        if (body.publishAt && existing.status === "scheduled") {
-          const updated = await updateAftermovieFields(
-            existing.id,
-            { publish_at: body.publishAt },
-            { coupleId: couple.id },
-          );
-          return NextResponse.json({ aftermovie: updated });
-        }
         return jsonError(
-          "Seçimler kilitli. Düzenleme için revizyon talep edin.",
+          "Film şu an üretiliyor. Bitince seçimleri değiştirebilirsiniz.",
         );
       }
 
-      // ready / waiting / selecting / draft / revision — couples may update picks
+      // Couples may update picks anytime except during active render.
       const saved = await saveAftermovieSelections({
         aftermovieId: existing.id,
         coupleId: couple.id,
@@ -205,20 +194,17 @@ export async function POST(req: Request, context: RouteContext) {
         publishAt: body.publishAt,
         preserveStatus:
           existing.status === "ready" ||
-          existing.status === "waiting_for_production",
+          existing.status === "waiting_for_production" ||
+          existing.status === "scheduled" ||
+          existing.status === "published",
       });
       return NextResponse.json({ aftermovie: saved });
     }
 
     if (action === "submit" || action === "queue-render") {
-      if (
-        existing.status === "queued" ||
-        existing.status === "rendering" ||
-        existing.status === "scheduled" ||
-        existing.status === "published"
-      ) {
+      if (existing.status === "queued" || existing.status === "rendering") {
         return jsonError(
-          "Film şu an kilitli. Yayın sonrası düzenleme için revizyon talep edin.",
+          "Film şu an üretiliyor. Bitince tekrar gönderebilirsiniz.",
         );
       }
 
