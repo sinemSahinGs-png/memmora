@@ -8,6 +8,7 @@ import {
   AftermovieSlideshow,
   mediaItemsToSlides,
 } from "./AftermovieSlideshow";
+import { DEFAULT_AFTER_MUSIC } from "./AftermovieBgm";
 import { getCoupleDisplayTitle } from "@/lib/couple-utils";
 import {
   getAftermoviePlaybackPath,
@@ -46,7 +47,7 @@ export function PostWeddingExperience({
   );
 
   const musicUrl =
-    aftermovie.music?.fileUrl?.trim() || "/audio/memoora-after.mp3";
+    aftermovie.music?.fileUrl?.trim() || DEFAULT_AFTER_MUSIC;
   const dateLabel = couple.weddingDate
     ? new Date(
         couple.weddingDate.includes("T")
