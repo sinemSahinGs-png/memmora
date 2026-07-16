@@ -9,7 +9,6 @@ interface AftermovieBgmProps {
   active?: boolean;
 }
 
-/** Prefer the known shipped file when DB still points at missing seed URLs. */
 export function resolveAftermovieMusicUrl(src?: string | null): string {
   const raw = (src?.trim() || "").trim();
   if (!raw) return DEFAULT_AFTER_MUSIC;
@@ -31,12 +30,12 @@ function toAbsolute(url: string): string {
 }
 
 /**
- * MEMOORA AFTER soundtrack.
- * Auto-starts when the browser allows; button toggles mute/pause.
- * First user gesture anywhere also unlocks play (mobile).
+ * Autoplay when the browser allows; otherwise first gesture / Sesi Aç unlocks.
+ * Button shows Ses Açık while playing and pauses on tap.
  */
 export function AftermovieBgm({ src, active = true }: AftermovieBgmProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const userPausedRef = useRef(false);
   const [playing, setPlaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const url = resolveAftermovieMusicUrl(src);
@@ -51,53 +50,75 @@ export function AftermovieBgm({ src, active = true }: AftermovieBgmProps) {
       el.volume = 0.7;
       audioRef.current = el;
       el.addEventListener("playing", () => setPlaying(true));
-      el.addEventListener("pause", () => setPlaying(false));
+      el.addEventListener("pause", () => {
+        if (!userPausedRef.current) setPlaying(false);
+        else setPlaying(false);
+      });
       el.addEventListener("ended", () => setPlaying(false));
       el.addEventListener("error", () => {
         setPlaying(false);
         setError("Müzik yüklenemedi");
       });
-    } else if (el.src !== absolute) {
+    } else if (!el.src || el.src !== absolute) {
       el.src = absolute;
     }
-    el.muted = false;
-    el.volume = 0.7;
     return el;
   };
 
-  const startMusic = () => {
+  const startMusic = (fromGesture = false) => {
+    if (userPausedRef.current && !fromGesture) return;
     setError(null);
     const el = ensureAudio();
-    const playPromise = el.play();
-    if (playPromise !== undefined) {
-      void playPromise
-        .then(() => {
-          setPlaying(true);
-          setError(null);
-        })
-        .catch(() => {
+    el.muted = false;
+    el.volume = 0.7;
+    void el
+      .play()
+      .then(() => {
+        userPausedRef.current = false;
+        setPlaying(true);
+        setError(null);
+      })
+      .catch(async () => {
+        // Some browsers allow muted autoplay — start silent then unmute.
+        try {
+          el.muted = true;
+          await el.play();
+          el.muted = false;
+          if (!el.paused && !el.muted) {
+            userPausedRef.current = false;
+            setPlaying(true);
+            return;
+          }
           setPlaying(false);
-        });
-    }
+        } catch {
+          setPlaying(false);
+        }
+      });
   };
 
   useEffect(() => {
     if (!active) return;
-
-    // Prefetch + autoplay attempt on mount
     ensureAudio();
-    startMusic();
+    startMusic(false);
 
     const unlock = () => {
+      if (userPausedRef.current) return;
       if (audioRef.current && !audioRef.current.paused) return;
-      startMusic();
+      startMusic(true);
     };
     const opts: AddEventListenerOptions = { capture: true, passive: true };
     document.addEventListener("pointerdown", unlock, opts);
     document.addEventListener("touchstart", unlock, opts);
     document.addEventListener("keydown", unlock, opts);
 
+    const retry = window.setInterval(() => {
+      if (userPausedRef.current) return;
+      const el = audioRef.current;
+      if (el && el.paused) startMusic(false);
+    }, 2000);
+
     return () => {
+      window.clearInterval(retry);
       document.removeEventListener("pointerdown", unlock, opts);
       document.removeEventListener("touchstart", unlock, opts);
       document.removeEventListener("keydown", unlock, opts);
@@ -108,7 +129,7 @@ export function AftermovieBgm({ src, active = true }: AftermovieBgmProps) {
       }
       audioRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount once per src
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, url]);
 
   if (!active) return null;
@@ -116,11 +137,13 @@ export function AftermovieBgm({ src, active = true }: AftermovieBgmProps) {
   const toggle = () => {
     const el = audioRef.current ?? ensureAudio();
     if (el && !el.paused) {
+      userPausedRef.current = true;
       el.pause();
       setPlaying(false);
       return;
     }
-    startMusic();
+    userPausedRef.current = false;
+    startMusic(true);
   };
 
   return (

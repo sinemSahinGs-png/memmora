@@ -440,6 +440,21 @@
   font-weight: 500;
 }
 
+.aftermovie-slideshow__card--date {
+  text-align: center;
+  padding: 28px 24px;
+}
+
+.aftermovie-slideshow__date {
+  margin: 0;
+  font-family: var(--font-serif, Georgia, "Times New Roman", serif);
+  font-size: clamp(1.6rem, 6vw, 2.6rem);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(245, 241, 232, 0.96);
+  text-wrap: balance;
+}
+
 .aftermovie-slideshow__eyebrow {
   letter-spacing: 0.28em;
   text-transform: uppercase;

@@ -72,51 +72,6 @@ export function PostWeddingExperience({
       <AftermovieBgm src={musicUrl} active />
 
       <section className="post-wedding__hero" id="aftermovie">
-        <div className="post-wedding__copy">
-          <FadeWords
-            as="p"
-            className="post-wedding__eyebrow"
-            text="MEMOORA AFTER"
-            startDelayMs={80}
-            stepMs={90}
-          />
-          <h1 className="post-wedding__headline">
-            <FadeWords
-              as="span"
-              className="post-wedding__headline-line"
-              text="Hikâyeniz şimdi"
-              startDelayMs={280}
-              stepMs={140}
-            />
-            <br />
-            <FadeWords
-              as="span"
-              className="post-wedding__headline-line"
-              text="film oldu."
-              startDelayMs={700}
-              stepMs={160}
-            />
-          </h1>
-          <div className="post-wedding__names">
-            <FadeWords
-              as="p"
-              className="post-wedding__names-title"
-              text={title}
-              startDelayMs={1100}
-              stepMs={180}
-            />
-            {dateLabel ? (
-              <FadeWords
-                as="p"
-                className="post-wedding__names-date"
-                text={dateLabel}
-                startDelayMs={1500}
-                stepMs={120}
-              />
-            ) : null}
-          </div>
-        </div>
-
         {useSlideshow ? (
           <AftermovieSlideshow
             slides={slides}
@@ -148,6 +103,7 @@ export function PostWeddingExperience({
             text="Anılar yaşamaya devam ediyor."
             startDelayMs={80}
             stepMs={140}
+            slowOnMobile
           />
         ) : null}
       </section>

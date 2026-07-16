@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import type { AftermovieDurationPreset, AftermovieMediaItem } from "@/lib/aftermovie/types";
 import { cn } from "@/lib/utils";
+import { FadeWords, fadeWordsDurationMs } from "./FadeWords";
 
 export interface SlideshowSlide {
   id: string;
@@ -20,9 +21,7 @@ interface AftermovieSlideshowProps {
   durationPreset?: AftermovieDurationPreset;
   musicUrl?: string | null;
   posterUrl?: string | null;
-  /** When false, hide links back to the old wedding site archive. */
   showArchiveLinks?: boolean;
-  /** Start music unmuted on mount; hide mute toggle. */
   autoStartMusic?: boolean;
   onComplete?: () => void;
   className?: string;
@@ -46,8 +45,8 @@ type Phase =
 
 export function AftermovieSlideshow({
   slides,
-  title,
-  openingText,
+  title: _title,
+  openingText: _openingText,
   closingText,
   weddingDateLabel,
   durationPreset = "standard",
@@ -58,8 +57,11 @@ export function AftermovieSlideshow({
   onComplete,
   className,
 }: AftermovieSlideshowProps) {
+  void _title;
+  void _openingText;
   void _musicUrl;
   void _autoStartMusic;
+
   const [phase, setPhase] = useState<Phase>({ kind: "opening" });
   const [paused, setPaused] = useState(false);
   const [error, setError] = useState(false);
@@ -72,6 +74,8 @@ export function AftermovieSlideshow({
     () => slides.filter((s) => Boolean(s.src)),
     [slides],
   );
+
+  const dateText = weddingDateLabel?.trim() || "";
 
   useEffect(() => {
     const video = videoRef.current;
@@ -87,11 +91,20 @@ export function AftermovieSlideshow({
     if (paused || ordered.length === 0) return;
 
     if (phase.kind === "opening") {
+      const mobile =
+        typeof window !== "undefined" &&
+        window.matchMedia("(max-width: 768px)").matches;
+      const startDelay = mobile ? 480 : 320;
+      const step = mobile ? 340 : 200;
+      const holdAfter = mobile ? 2400 : 1800;
+      const duration = dateText
+        ? fadeWordsDurationMs(dateText, startDelay, step, holdAfter)
+        : 2200;
       const t = window.setTimeout(() => {
         setPhase(
           ordered.length > 0 ? { kind: "slide", index: 0 } : { kind: "closing" },
         );
-      }, 3200);
+      }, duration);
       return () => window.clearTimeout(t);
     }
 
@@ -134,7 +147,7 @@ export function AftermovieSlideshow({
       }, hold);
       return () => window.clearTimeout(t);
     }
-  }, [hold, onComplete, ordered, paused, phase]);
+  }, [dateText, hold, onComplete, ordered, paused, phase]);
 
   const currentSlide =
     phase.kind === "slide" ? ordered[phase.index] ?? null : null;
@@ -148,7 +161,6 @@ export function AftermovieSlideshow({
 
   const holdPause = (event: PointerEvent<HTMLDivElement>) => {
     event.currentTarget.setPointerCapture(event.pointerId);
-    // Sustained hold only — short taps must not interrupt music unlock.
     clearHoldTimer();
     holdTimerRef.current = window.setTimeout(() => {
       setPaused(true);
@@ -171,7 +183,7 @@ export function AftermovieSlideshow({
     );
   }
 
-  const showChrome = !_autoStartMusic;
+  const showChrome = showArchiveLinks;
 
   return (
     <div className={cn("aftermovie-slideshow", className)}>
@@ -193,10 +205,19 @@ export function AftermovieSlideshow({
         role="presentation"
       >
         {phase.kind === "opening" ? (
-          <div className="aftermovie-slideshow__card aftermovie-slideshow__card--title">
-            <p className="aftermovie-slideshow__eyebrow">MEMOORA AFTER</p>
-            <h2>{openingText || title}</h2>
-            {weddingDateLabel ? <p>{weddingDateLabel}</p> : null}
+          <div className="aftermovie-slideshow__card aftermovie-slideshow__card--date">
+            {dateText ? (
+              <FadeWords
+                as="p"
+                className="aftermovie-slideshow__date"
+                text={dateText}
+                startDelayMs={320}
+                stepMs={200}
+                slowOnMobile
+              />
+            ) : (
+              <p className="aftermovie-slideshow__date">Memoora After</p>
+            )}
           </div>
         ) : null}
 
