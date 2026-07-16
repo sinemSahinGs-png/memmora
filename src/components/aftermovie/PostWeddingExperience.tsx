@@ -72,6 +72,46 @@ export function PostWeddingExperience({
       <AftermovieBgm src={musicUrl} active />
 
       <section className="post-wedding__hero" id="aftermovie">
+        <div className="post-wedding__copy">
+          <FadeWords
+            as="p"
+            className="post-wedding__eyebrow"
+            text="MEMOORA AFTER"
+            startDelayMs={80}
+            stepMs={100}
+            slowOnMobile
+          />
+          <h1 className="post-wedding__headline">
+            <FadeWords
+              as="span"
+              className="post-wedding__headline-line"
+              text="Hikâyeniz şimdi"
+              startDelayMs={280}
+              stepMs={150}
+              slowOnMobile
+            />
+            <br />
+            <FadeWords
+              as="span"
+              className="post-wedding__headline-line"
+              text="film oldu."
+              startDelayMs={720}
+              stepMs={170}
+              slowOnMobile
+            />
+          </h1>
+          <div className="post-wedding__names">
+            <FadeWords
+              as="p"
+              className="post-wedding__names-title"
+              text={title}
+              startDelayMs={1100}
+              stepMs={190}
+              slowOnMobile
+            />
+          </div>
+        </div>
+
         {useSlideshow ? (
           <AftermovieSlideshow
             slides={slides}
