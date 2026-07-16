@@ -385,6 +385,10 @@
   min-height: min(70svh, 520px);
   display: grid;
   place-items: center;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
 }
 
 .aftermovie-slideshow__media {
@@ -544,10 +548,11 @@
 
 .post-wedding__eyebrow {
   margin: 0;
-  font-size: 0.68rem;
-  letter-spacing: 0.24em;
+  font-size: clamp(0.82rem, 2.4vw, 0.95rem);
+  letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: rgba(222, 191, 88, 0.9);
+  font-weight: 600;
+  color: rgba(226, 199, 103, 0.98);
 }
 
 .post-wedding__headline {
@@ -572,9 +577,10 @@
 
 .post-wedding__names {
   margin: 22px 0 0;
-  font-size: 0.95rem;
-  letter-spacing: 0.02em;
-  color: rgba(226, 199, 103, 0.9);
+  font-size: clamp(1.05rem, 3.4vw, 1.28rem);
+  letter-spacing: 0.04em;
+  font-weight: 500;
+  color: rgba(226, 199, 103, 0.98);
 }
 
 .post-wedding__poster-stage {

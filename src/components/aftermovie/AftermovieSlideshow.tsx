@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import type { AftermovieDurationPreset, AftermovieMediaItem } from "@/lib/aftermovie/types";
 import { cn } from "@/lib/utils";
 
@@ -42,8 +42,7 @@ function photoHoldMs(preset: AftermovieDurationPreset | undefined): number {
 type Phase =
   | { kind: "opening" }
   | { kind: "slide"; index: number }
-  | { kind: "closing" }
-  | { kind: "done" };
+  | { kind: "closing" };
 
 export function AftermovieSlideshow({
   slides,
@@ -65,6 +64,7 @@ export function AftermovieSlideshow({
   const [error, setError] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const completedOnceRef = useRef(false);
   const hold = photoHoldMs(durationPreset);
 
   const ordered = useMemo(
@@ -98,7 +98,6 @@ export function AftermovieSlideshow({
     void audio.play().then(() => setMuted(false)).catch(() => undefined);
   }, [autoStartMusic, musicUrl, muted, paused, phase]);
 
-  // If browser blocks unmuted autoplay, unlock on first touch/click anywhere.
   useEffect(() => {
     if (!autoStartMusic || !musicUrl) return;
     tryPlayMusic();
@@ -120,7 +119,17 @@ export function AftermovieSlideshow({
   }, [autoStartMusic, musicUrl]);
 
   useEffect(() => {
-    if (paused || phase.kind === "done" || ordered.length === 0) return;
+    const video = videoRef.current;
+    if (!video) return;
+    if (paused) {
+      video.pause();
+    } else {
+      void video.play().catch(() => undefined);
+    }
+  }, [paused, phase]);
+
+  useEffect(() => {
+    if (paused || ordered.length === 0) return;
 
     if (phase.kind === "opening") {
       const t = window.setTimeout(() => {
@@ -133,8 +142,12 @@ export function AftermovieSlideshow({
 
     if (phase.kind === "closing") {
       const t = window.setTimeout(() => {
-        setPhase({ kind: "done" });
-        onComplete?.();
+        if (!completedOnceRef.current) {
+          completedOnceRef.current = true;
+          onComplete?.();
+        }
+        setError(false);
+        setPhase({ kind: "opening" });
       }, 3200);
       return () => window.clearTimeout(t);
     }
@@ -146,7 +159,6 @@ export function AftermovieSlideshow({
         return;
       }
       if (slide.mediaType === "video") {
-        // Advance on video end via handler; safety timeout
         const t = window.setTimeout(() => {
           const next = phase.index + 1;
           setPhase(
@@ -172,9 +184,14 @@ export function AftermovieSlideshow({
   const currentSlide =
     phase.kind === "slide" ? ordered[phase.index] ?? null : null;
 
-  const restart = () => {
-    setError(false);
-    setPhase({ kind: "opening" });
+  const holdPause = (event: PointerEvent<HTMLDivElement>) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setPaused(true);
+  };
+  const releasePause = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
     setPaused(false);
   };
 
@@ -185,6 +202,8 @@ export function AftermovieSlideshow({
       </div>
     );
   }
+
+  const showChrome = !autoStartMusic;
 
   return (
     <div className={cn("aftermovie-slideshow", className)}>
@@ -203,7 +222,15 @@ export function AftermovieSlideshow({
         <img src={posterUrl} alt="" className="aftermovie-slideshow__bg" />
       ) : null}
 
-      <div className="aftermovie-slideshow__stage">
+      <div
+        className="aftermovie-slideshow__stage"
+        onPointerDown={holdPause}
+        onPointerUp={releasePause}
+        onPointerCancel={releasePause}
+        onPointerLeave={releasePause}
+        onContextMenu={(e) => e.preventDefault()}
+        role="presentation"
+      >
         {phase.kind === "opening" ? (
           <div className="aftermovie-slideshow__card aftermovie-slideshow__card--title">
             <p className="aftermovie-slideshow__eyebrow">MEMOORA AFTER</p>
@@ -219,6 +246,7 @@ export function AftermovieSlideshow({
             src={currentSlide.src}
             alt={currentSlide.alt ?? ""}
             className="aftermovie-slideshow__media aftermovie-slideshow__media--photo"
+            draggable={false}
             onError={() => setError(true)}
           />
         ) : null}
@@ -232,6 +260,7 @@ export function AftermovieSlideshow({
             playsInline
             muted
             autoPlay={!paused}
+            draggable={false}
             onEnded={() => {
               if (phase.kind !== "slide") return;
               const next = phase.index + 1;
@@ -245,7 +274,7 @@ export function AftermovieSlideshow({
           />
         ) : null}
 
-        {phase.kind === "closing" || phase.kind === "done" ? (
+        {phase.kind === "closing" ? (
           <div className="aftermovie-slideshow__card aftermovie-slideshow__card--title">
             <p>{closingText || "Anılar yaşamaya devam ediyor."}</p>
             <p className="aftermovie-slideshow__brand">Memoora</p>
@@ -260,40 +289,27 @@ export function AftermovieSlideshow({
         ) : null}
       </div>
 
-      <div className="aftermovie-slideshow__controls">
-        <button
-          type="button"
-          onClick={() => setPaused((p) => !p)}
-          aria-label={paused ? "Devam et" : "Duraklat"}
-        >
-          {paused ? "Devam" : "Duraklat"}
-        </button>
-        {!autoStartMusic ? (
-          <button
-            type="button"
-            onClick={() => {
-              setMuted((m) => !m);
-              void audioRef.current?.play().catch(() => undefined);
-            }}
-            aria-label={muted ? "Sesi aç" : "Sesi kapat"}
-          >
-            {muted ? "Sesi Aç" : "Ses Açık"}
-          </button>
-        ) : null}
-        <button type="button" onClick={restart} aria-label="Yeniden izle">
-          Yeniden
-        </button>
-        {showArchiveLinks ? (
-          <a href="#gallery" className="aftermovie-slideshow__link">
-            Anılara Devam Et
-          </a>
-        ) : null}
-        {phase.kind === "slide" ? (
-          <span className="aftermovie-slideshow__progress">
-            {phase.index + 1} / {ordered.length}
-          </span>
-        ) : null}
-      </div>
+      {showChrome ? (
+        <div className="aftermovie-slideshow__controls">
+          {!autoStartMusic ? (
+            <button
+              type="button"
+              onClick={() => {
+                setMuted((m) => !m);
+                void audioRef.current?.play().catch(() => undefined);
+              }}
+              aria-label={muted ? "Sesi aç" : "Sesi kapat"}
+            >
+              {muted ? "Sesi Aç" : "Ses Açık"}
+            </button>
+          ) : null}
+          {showArchiveLinks ? (
+            <a href="#gallery" className="aftermovie-slideshow__link">
+              Anılara Devam Et
+            </a>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }

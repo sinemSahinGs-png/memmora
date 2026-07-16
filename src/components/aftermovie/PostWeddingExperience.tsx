@@ -67,10 +67,6 @@ export function PostWeddingExperience({
           <br />
           film oldu.
         </h1>
-        <p className="post-wedding__lead">
-          Düğün gününüzden seçilen fotoğraf ve videolar, Memoora’nın imza
-          müziğiyle size özel bir anı filmine dönüştü.
-        </p>
         <p className="post-wedding__names">
           {title}
           {dateLabel ? ` — ${dateLabel}` : ""}
