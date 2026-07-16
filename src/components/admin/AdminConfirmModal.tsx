@@ -9,6 +9,7 @@ interface AdminConfirmModalProps {
   confirmLabel?: string;
   cancelLabel?: string;
   loading?: boolean;
+  loadingLabel?: string;
   onConfirm: () => void;
   onCancel: () => void;
   children?: React.ReactNode;
@@ -21,6 +22,7 @@ export function AdminConfirmModal({
   confirmLabel = "Evet, sil",
   cancelLabel = "Vazgeç",
   loading = false,
+  loadingLabel = "İşleniyor…",
   onConfirm,
   onCancel,
   children,
@@ -29,7 +31,7 @@ export function AdminConfirmModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-5"
+      className="fixed inset-0 z-[300] flex items-center justify-center p-5"
       role="dialog"
       aria-modal="true"
       aria-labelledby="admin-confirm-title"
@@ -68,7 +70,7 @@ export function AdminConfirmModal({
             disabled={loading}
             className="inline-flex w-full items-center justify-center rounded-full border border-red-400/30 bg-red-500/10 px-6 py-3.5 text-[10px] font-medium uppercase tracking-[0.2em] text-red-200 transition-colors hover:border-red-400/50 hover:bg-red-500/20 disabled:opacity-50 sm:flex-1"
           >
-            {loading ? "Siliniyor…" : confirmLabel}
+            {loading ? loadingLabel : confirmLabel}
           </button>
         </div>
       </div>

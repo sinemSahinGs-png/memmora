@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/aftermovie-publish",
+      "schedule": "0 * * * *"
+    }
+  ]
+}

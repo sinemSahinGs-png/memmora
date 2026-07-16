@@ -1,4 +1,9 @@
-export type AdminPremiumBottomTab = "leaves" | "gallery" | "memories" | "quiz";
+export type AdminPremiumBottomTab =
+  | "leaves"
+  | "gallery"
+  | "memories"
+  | "quiz"
+  | "film";
 
 export type AdminPremiumTab = AdminPremiumBottomTab | "settings";
 
@@ -10,6 +15,7 @@ export const ADMIN_PREMIUM_BOTTOM_TABS: Array<{
   { id: "gallery", label: "Galeri" },
   { id: "memories", label: "Anılar" },
   { id: "quiz", label: "Quiz" },
+  { id: "film", label: "Düğün Filmi" },
 ];
 
 /** Desktop tab strip — same as bottom nav (no Ayarlar). */

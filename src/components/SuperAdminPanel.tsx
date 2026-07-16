@@ -8,6 +8,7 @@ import { AdminConfirmModal } from "./admin/AdminConfirmModal";
 import { SuperAdminCoupleList } from "./super-admin/SuperAdminCoupleList";
 import { SuperAdminOrdersTab } from "./super-admin/SuperAdminOrdersTab";
 import { SuperAdminCoupleForm } from "./super-admin/SuperAdminCoupleForm";
+import { SuperAdminAftermoviePanel } from "./super-admin/SuperAdminAftermoviePanel";
 import type { Couple, CoupleCreateInput, CoupleListItem } from "@/lib/types";
 import {
   createCouple,
@@ -31,7 +32,7 @@ import {
 } from "@/lib/admin-session";
 
 type View = "list" | "create" | "edit";
-type MainTab = "couples" | "orders";
+type MainTab = "couples" | "orders" | "aftermovie";
 type StatusFilter = "all" | "active" | "passive" | "archived";
 
 export function SuperAdminPanel() {
@@ -110,14 +111,27 @@ export function SuperAdminPanel() {
     return list;
   }, [couples, search, statusFilter, sortByDate]);
 
-  const handlePinSubmit = (e: React.FormEvent) => {
+  const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pin === superAdminPin) {
+    if (pin !== superAdminPin) {
+      setPinError(true);
+      return;
+    }
+    try {
+      const res = await fetch("/api/admin/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin }),
+      });
+      if (!res.ok) {
+        setPinError(true);
+        return;
+      }
       setAdminSessionActive(adminSessionKey);
       setAuthenticated(true);
       setPinError(false);
       setPin("");
-    } else {
+    } catch {
       setPinError(true);
     }
   };
@@ -293,7 +307,11 @@ export function SuperAdminPanel() {
               Memoora Yönetim Paneli
             </p>
             <h1 className="mt-1 font-serif text-2xl text-white/95 sm:text-3xl">
-              {mainTab === "orders" ? "Siparişler" : "Tüm Çiftler"}
+              {mainTab === "orders"
+                ? "Siparişler"
+                : mainTab === "aftermovie"
+                  ? "MEMOORA AFTER"
+                  : "Tüm Çiftler"}
             </h1>
           </div>
           {mainTab === "couples" && view === "list" ? (
@@ -321,6 +339,16 @@ export function SuperAdminPanel() {
           >
             Siparişler
           </button>
+          <button
+            type="button"
+            className={cn(
+              "admin-tab-btn",
+              mainTab === "aftermovie" && "admin-tab-btn--active",
+            )}
+            onClick={() => setMainTab("aftermovie")}
+          >
+            Düğün Filmi
+          </button>
         </div>
 
         {(message || error) && (
@@ -336,6 +364,8 @@ export function SuperAdminPanel() {
 
         {mainTab === "orders" ? (
           <SuperAdminOrdersTab />
+        ) : mainTab === "aftermovie" ? (
+          <SuperAdminAftermoviePanel />
         ) : view === "list" ? (
           <>
             <div className="super-admin-toolbar">

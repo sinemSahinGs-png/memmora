@@ -1,0 +1,743 @@
+/* MEMOORA AFTER — admin + public */
+.admin-aftermovie {
+  display: grid;
+  gap: 18px;
+  position: relative;
+  z-index: 3;
+  overflow: visible;
+  touch-action: pan-y;
+}
+
+.admin-film-tab {
+  padding-bottom: calc(var(--ap-bottom-nav-height, 96px) + 48px);
+  overflow: visible;
+  position: relative;
+  z-index: 3;
+}
+
+.admin-aftermovie__status .admin-premium-heading {
+  margin: 6px 0 10px;
+}
+
+.admin-aftermovie__badge {
+  display: inline-flex;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  color: rgba(246, 222, 150, 0.95);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.admin-aftermovie__meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0 0;
+}
+
+.admin-aftermovie__meta dt {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(245, 241, 232, 0.45);
+}
+
+.admin-aftermovie__meta dd {
+  margin: 4px 0 0;
+  color: rgba(245, 241, 232, 0.88);
+}
+
+.admin-aftermovie__legal,
+.admin-aftermovie__hint,
+.admin-aftermovie__error {
+  margin-top: 14px;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: rgba(245, 241, 232, 0.55);
+}
+
+.admin-aftermovie__error {
+  color: #f0b4a8;
+}
+
+.admin-aftermovie__section-title {
+  margin: 0;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 1.15rem;
+  color: rgba(245, 241, 232, 0.95);
+}
+
+.admin-aftermovie__lead {
+  margin: 8px 0 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: rgba(245, 241, 232, 0.62);
+}
+
+.admin-aftermovie__count {
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(225, 196, 103, 0.92);
+  white-space: nowrap;
+}
+
+.admin-aftermovie__status-note {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  background: rgba(16, 48, 36, 0.55);
+  color: rgba(245, 241, 232, 0.85);
+  font-size: 0.88rem;
+}
+
+.admin-aftermovie__toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.admin-aftermovie__filters {
+  margin-top: 14px;
+}
+
+.admin-aftermovie__picker {
+  overflow: visible;
+}
+
+.admin-aftermovie__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+  /* Nested scroll so photos below the first rows stay reachable on mobile */
+  max-height: min(68vh, 720px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  padding-bottom: 8px;
+  padding-right: 2px;
+}
+
+@media (min-width: 720px) {
+  .admin-aftermovie__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-height: min(72vh, 820px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .admin-aftermovie__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.admin-aftermovie__tile {
+  position: relative;
+  padding: 0;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  background: #0a1612;
+  overflow: hidden;
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  color: rgba(245, 241, 232, 0.8);
+}
+
+.admin-aftermovie__tile:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.admin-aftermovie__tile img,
+.admin-aftermovie__thumb-fallback {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+  background: rgba(8, 28, 20, 0.9);
+}
+
+.admin-aftermovie__thumb-fallback {
+  display: grid;
+  place-items: center;
+  font-size: 0.72rem;
+  color: rgba(245, 241, 232, 0.45);
+  padding: 8px;
+  text-align: center;
+}
+
+.admin-aftermovie__tile-meta {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px 10px;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.admin-aftermovie__tile-meta strong {
+  color: rgba(225, 196, 103, 0.95);
+}
+
+.admin-aftermovie__tile-date {
+  color: rgba(245, 241, 232, 0.45);
+}
+
+.admin-aftermovie__tile.is-selected {
+  border-color: rgba(225, 196, 103, 0.85);
+  background: rgba(12, 48, 36, 0.95);
+  box-shadow: 0 0 0 1px rgba(225, 196, 103, 0.35);
+}
+
+.admin-aftermovie__check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(225, 196, 103, 0.95);
+  color: #0a1612;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.admin-aftermovie__empty {
+  margin-top: 16px;
+  padding: 20px 16px;
+  border-radius: 14px;
+  border: 1px dashed rgba(212, 175, 55, 0.28);
+  text-align: center;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  color: rgba(245, 241, 232, 0.8);
+}
+
+.admin-aftermovie__unlock {
+  margin-top: 14px;
+}
+
+.admin-aftermovie__order {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.admin-aftermovie__order li {
+  display: grid;
+  grid-template-columns: auto 48px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.82rem;
+}
+
+.admin-aftermovie__order-index {
+  width: 22px;
+  color: rgba(225, 196, 103, 0.9);
+  font-weight: 600;
+}
+
+.admin-aftermovie__order-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #0a1612;
+}
+
+.admin-aftermovie__order-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.admin-aftermovie__order button,
+.admin-aftermovie__poster-btn {
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  min-height: 36px;
+  font-size: 0.72rem;
+}
+
+.admin-aftermovie__poster-list {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+}
+
+.admin-aftermovie__poster-btn {
+  width: 100%;
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+  text-align: center;
+}
+
+.admin-aftermovie__poster-btn img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.admin-aftermovie__poster-btn.is-active {
+  border-color: rgba(225, 196, 103, 0.7);
+  color: #e8c85d;
+  background: rgba(12, 48, 36, 0.65);
+}
+
+.admin-aftermovie__details {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-aftermovie__field {
+  display: grid;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: rgba(245, 241, 232, 0.7);
+}
+
+.admin-aftermovie__field input,
+.admin-aftermovie__field select,
+.admin-aftermovie__field textarea,
+.admin-aftermovie__details input,
+.admin-aftermovie__details select,
+.admin-aftermovie__details textarea {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+  color: #f5f1e8;
+  border-radius: 10px;
+  padding: 10px 12px;
+  width: 100%;
+}
+
+.admin-aftermovie__preview {
+  width: 100%;
+  border-radius: 14px;
+  background: #000;
+  margin-top: 10px;
+}
+
+.admin-aftermovie__preview-slideshow {
+  margin-top: 14px;
+  max-height: min(52vh, 420px);
+}
+
+.admin-aftermovie__preview-slideshow.aftermovie-slideshow {
+  min-height: 280px;
+  max-height: min(52vh, 420px);
+}
+
+.aftermovie-slideshow {
+  position: relative;
+  width: 100%;
+  min-height: min(70svh, 520px);
+  border-radius: 16px;
+  overflow: hidden;
+  background: #050c0a;
+  color: #f5f1e8;
+}
+
+.admin-aftermovie__preview-slideshow .aftermovie-slideshow__stage,
+.admin-aftermovie__preview-slideshow .aftermovie-slideshow__media {
+  min-height: 240px;
+  height: min(46vh, 360px);
+}
+
+.aftermovie-slideshow__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.35;
+  filter: blur(8px);
+}
+
+.aftermovie-slideshow__stage {
+  position: relative;
+  z-index: 1;
+  min-height: min(70svh, 520px);
+  display: grid;
+  place-items: center;
+}
+
+.aftermovie-slideshow__media {
+  width: 100%;
+  height: min(70svh, 520px);
+  object-fit: contain;
+  background: #050c0a;
+}
+
+.aftermovie-slideshow__media--photo {
+  animation: aftermovie-kenburns 4.2s ease-out both;
+}
+
+@keyframes aftermovie-kenburns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aftermovie-slideshow__media--photo {
+    animation: none;
+  }
+}
+
+.aftermovie-slideshow__card {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 10px;
+  padding: 28px;
+  text-align: center;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(8, 28, 20, 0.35),
+    rgba(5, 12, 10, 0.82)
+  );
+}
+
+.aftermovie-slideshow__card h2 {
+  margin: 0;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  font-weight: 500;
+}
+
+.aftermovie-slideshow__eyebrow {
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  color: rgba(225, 196, 103, 0.9);
+}
+
+.aftermovie-slideshow__brand {
+  margin-top: 8px;
+  font-size: 0.78rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(245, 241, 232, 0.55);
+}
+
+.aftermovie-slideshow__controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 12px 14px;
+  background: linear-gradient(transparent, rgba(5, 12, 10, 0.92));
+}
+
+.aftermovie-slideshow__controls button,
+.aftermovie-slideshow__link {
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  background: rgba(10, 30, 22, 0.55);
+  color: #f5f1e8;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  text-decoration: none;
+}
+
+.aftermovie-slideshow__progress {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: rgba(245, 241, 232, 0.55);
+}
+
+.aftermovie-slideshow__error {
+  position: absolute;
+  inset: auto 16px 72px;
+  text-align: center;
+  color: rgba(245, 241, 232, 0.85);
+}
+
+.aftermovie-slideshow--empty {
+  display: grid;
+  place-items: center;
+  min-height: 200px;
+  color: rgba(245, 241, 232, 0.6);
+}
+
+.admin-aftermovie__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-aftermovie__actions--sticky {
+  /* Avoid sticky overlays that steal touch scroll on mobile admin */
+  position: relative;
+  bottom: auto;
+  z-index: 2;
+  margin-top: 8px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(8, 24, 18, 0.92);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.admin-aftermovie__actions button {
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  background: linear-gradient(120deg, rgba(225, 196, 103, 0.2), rgba(10, 30, 22, 0.5));
+  color: #f5f1e8;
+  border-radius: 999px;
+  padding: 12px 18px;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.admin-aftermovie__actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.post-wedding__hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(72px, 12vw, 120px) 22px 48px;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(31, 86, 62, 0.28), transparent 55%),
+    linear-gradient(180deg, #040c09 0%, #07140f 100%);
+  color: #f5f1e8;
+}
+
+.post-wedding__eyebrow {
+  margin: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(222, 191, 88, 0.9);
+}
+
+.post-wedding__headline {
+  margin: 18px 0 0;
+  max-width: min(12.5em, 100%);
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: clamp(1.85rem, 7.2vw, 3.35rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  font-weight: 500;
+  color: #f5f1e8;
+  overflow-wrap: break-word;
+}
+
+.post-wedding__lead {
+  margin: 20px 0 0;
+  max-width: min(620px, 100%);
+  font-size: clamp(0.92rem, 3.2vw, 1.02rem);
+  line-height: 1.75;
+  color: rgba(245, 241, 232, 0.74);
+}
+
+.post-wedding__names {
+  margin: 22px 0 0;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  color: rgba(226, 199, 103, 0.9);
+}
+
+.post-wedding__poster-stage {
+  position: relative;
+  margin-top: 28px;
+  max-width: 920px;
+}
+
+.post-wedding__poster {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  display: block;
+  border-radius: 18px;
+  border: 1px solid rgba(212, 175, 55, 0.16);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+}
+
+.post-wedding__poster--empty {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.post-wedding__cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.post-wedding__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.post-wedding__cta--primary {
+  border: 0;
+  background: linear-gradient(110deg, #e1c467, #cfa83d);
+  color: #07110d;
+  font-weight: 600;
+}
+
+.post-wedding__cta--ghost {
+  border: 1px solid rgba(245, 241, 232, 0.28);
+  color: rgba(245, 241, 232, 0.88);
+  background: transparent;
+}
+
+.post-wedding__closing {
+  margin-top: 18px;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 1.2rem;
+  color: rgba(245, 241, 232, 0.88);
+}
+
+.post-wedding__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 18px;
+  padding: 18px 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(4, 12, 9, 0.88);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.post-wedding__nav a {
+  color: rgba(245, 241, 232, 0.72);
+  text-decoration: none;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.aftermovie-player {
+  position: relative;
+  margin-top: 24px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #000;
+  border: 1px solid rgba(212, 175, 55, 0.14);
+}
+
+.aftermovie-player__video {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: block;
+  background: #000;
+}
+
+.aftermovie-player__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 12px;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.72));
+}
+
+.aftermovie-player__controls button {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f5f1e8;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.aftermovie-player__progress {
+  flex: 1;
+  min-width: 120px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.aftermovie-player__progress span {
+  display: block;
+  height: 100%;
+  background: #e1c467;
+}
+
+.aftermovie-player__loading,
+.aftermovie-player__error {
+  position: absolute;
+  inset: auto 12px 64px;
+  color: rgba(245, 241, 232, 0.8);
+  font-size: 0.9rem;
+}
+
+.aftermovie-player__fallback-cta {
+  display: inline-block;
+  margin-top: 10px;
+  color: #e1c467;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.couple-after-teaser {
+  margin: 0 22px 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(212, 175, 55, 0.18);
+  border-radius: 14px;
+  background: rgba(8, 24, 18, 0.55);
+  color: rgba(245, 241, 232, 0.78);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .post-wedding__hero,
+  .aftermovie-player {
+    transition: none;
+  }
+}

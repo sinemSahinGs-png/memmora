@@ -8,6 +8,7 @@ import { AdminCoupleSettings } from "./admin/AdminCoupleSettings";
 import { AdminCoupleGallery } from "./admin/AdminCoupleGallery";
 import { AdminGuestMemoriesGrid } from "./admin/AdminGuestMemoriesGrid";
 import { AdminQuizManager } from "./admin/AdminQuizManager";
+import { AdminAftermoviePanel } from "./admin/AdminAftermoviePanel";
 import { AdminContributionActionModal } from "./admin/AdminContributionActionModal";
 import { AdminRsvpModal } from "./admin/AdminRsvpModal";
 import { AdminInviteModal } from "./admin/AdminInviteModal";
@@ -55,6 +56,7 @@ import {
 import { getCoupleDisplayTitle } from "@/lib/couple-utils";
 import { buildCouplePublicUrl, buildCoupleQuizUrl } from "@/lib/site-url";
 import {
+  clearAdminSession,
   getCoupleAdminSessionKey,
   isAdminSessionActive,
   setAdminSessionActive,
@@ -150,9 +152,44 @@ export function AdminPanel({
   }, [couple.id]);
 
   useEffect(() => {
-    setAuthenticated(isAdminSessionActive(adminSessionKey));
-    setAuthReady(true);
-  }, [adminSessionKey]);
+    let cancelled = false;
+    const restore = async () => {
+      const local = isAdminSessionActive(adminSessionKey);
+      if (!local) {
+        if (!cancelled) {
+          setAuthenticated(false);
+          setAuthReady(true);
+        }
+        return;
+      }
+      // sessionStorage alone is not enough — require signed HttpOnly cookie
+      try {
+        const res = await fetch(
+          `/api/couples/${couple.slug}/admin/session`,
+          { credentials: "same-origin" },
+        );
+        if (!cancelled) {
+          if (res.ok) {
+            setAuthenticated(true);
+          } else {
+            clearAdminSession(adminSessionKey);
+            setAuthenticated(false);
+          }
+          setAuthReady(true);
+        }
+      } catch {
+        if (!cancelled) {
+          clearAdminSession(adminSessionKey);
+          setAuthenticated(false);
+          setAuthReady(true);
+        }
+      }
+    };
+    void restore();
+    return () => {
+      cancelled = true;
+    };
+  }, [adminSessionKey, couple.slug]);
 
   useEffect(() => {
     if (authenticated) loadData();
@@ -209,14 +246,27 @@ export function AdminPanel({
     }
   };
 
-  const handlePinSubmit = (e: React.FormEvent) => {
+  const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pin === adminPin) {
+    if (pin !== adminPin) {
+      setPinError(true);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/couples/${couple.slug}/admin/session`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin }),
+      });
+      if (!res.ok) {
+        setPinError(true);
+        return;
+      }
       setAdminSessionActive(adminSessionKey);
       setAuthenticated(true);
       setPinError(false);
       setPin("");
-    } else {
+    } catch {
       setPinError(true);
     }
   };
@@ -447,6 +497,24 @@ export function AdminPanel({
             coupleSlug={couple.slug}
             heroRef={galleryHeroRef}
             loading={loading}
+          />
+        </div>
+      );
+    }
+
+    if (tab === "film") {
+      return (
+        <div className="admin-premium-panel admin-premium-subpanel admin-film-tab">
+          <AdminAftermoviePanel
+            couple={couple}
+            contributions={contributions}
+            onToast={showToast}
+            onOpenGallery={() => setTab("gallery")}
+            onSessionExpired={() => {
+              clearAdminSession(adminSessionKey);
+              setAuthenticated(false);
+              showToast("Oturum sona erdi. Lütfen PIN ile tekrar giriş yapın.");
+            }}
           />
         </div>
       );

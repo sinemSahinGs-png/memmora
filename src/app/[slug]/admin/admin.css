@@ -113,7 +113,16 @@
 
 .memoora-premium-admin .memoora-premium-admin__content {
   position: relative;
-  z-index: 2;
+  z-index: 4;
+  overflow: visible;
+  touch-action: pan-y;
+}
+
+/* Film tab: never trap page scroll under ambient layers */
+.memoora-premium-admin .admin-film-tab {
+  position: relative;
+  z-index: 4;
+  overflow: visible;
 }
 
 @media (max-width: 639px) {

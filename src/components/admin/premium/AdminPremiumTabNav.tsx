@@ -21,6 +21,7 @@ const TAB_ICONS: Record<AdminPremiumBottomTab, ComponentType<{ className?: strin
   memories: IconGrid,
   gallery: IconMedia,
   quiz: IconQuiz,
+  film: IconMedia,
 };
 
 interface AdminPremiumTabNavProps {
