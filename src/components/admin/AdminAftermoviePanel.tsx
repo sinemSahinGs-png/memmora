@@ -335,36 +335,17 @@ export function AdminAftermoviePanel({
     }
   };
 
-  const handleSave = async () => {
-    const poster = effectivePosterId;
-    if (poster && poster !== posterMediaId) setPosterMediaId(poster);
-    const result = await postAction("save", {
-      items: buildItems(poster),
-      posterMediaId: poster,
-      durationPreset,
-      openingText,
-      closingText,
-      title: couple.displayTitle,
-      publishAt: publishAt ? new Date(publishAt).toISOString() : null,
-    });
-    if (result) {
-      onToast?.("Seçimler kaydedildi");
-      await load();
-    }
-  };
-
   const openSubmitConfirm = () => {
     if (submitBlockedReason) {
       onToast?.(submitBlockedReason);
       return;
     }
-    if (!effectivePosterId) {
-      onToast?.("Göndermeden önce bir kapak fotoğrafı seçin.");
+    const poster = effectivePosterId;
+    if (!poster) {
+      onToast?.("En az bir fotoğraf seçin.");
       return;
     }
-    if (effectivePosterId !== posterMediaId) {
-      setPosterMediaId(effectivePosterId);
-    }
+    if (poster !== posterMediaId) setPosterMediaId(poster);
     setSubmitConfirmOpen(true);
   };
 
@@ -376,7 +357,7 @@ export function AdminAftermoviePanel({
     }
     const poster = effectivePosterId;
     if (!poster) {
-      onToast?.("Göndermeden önce bir kapak fotoğrafı seçin.");
+      onToast?.("En az bir fotoğraf seçin.");
       return;
     }
     if (poster !== posterMediaId) setPosterMediaId(poster);
@@ -393,7 +374,7 @@ export function AdminAftermoviePanel({
     if (result) {
       onToast?.(
         result.message ??
-          "Düğün filminiz slayt olarak ön izlemeye hazır.",
+          "After filminiz hazır.",
       );
       await load();
     }
@@ -425,7 +406,7 @@ export function AdminAftermoviePanel({
       {/* 1. Film Durumu */}
       <section className="admin-premium-card admin-aftermovie__status">
         <p className="admin-premium-eyebrow">MEMOORA AFTER</p>
-        <h2 className="admin-premium-heading">Düğün Filmi</h2>
+        <h2 className="admin-premium-heading">After</h2>
         <p className="admin-aftermovie__badge">
           {aftermovie
             ? adminStatusLabel(aftermovie.status)
@@ -477,10 +458,6 @@ export function AdminAftermoviePanel({
               {selectedIds.length} anı · {photoCount} foto · {videoCount} video
             </dd>
           </div>
-          <div>
-            <dt>Kapak</dt>
-            <dd>{posterMediaId ? "Seçildi" : "Seçilmedi"}</dd>
-          </div>
         </dl>
       </section>
 
@@ -499,7 +476,7 @@ export function AdminAftermoviePanel({
               : status === "scheduled"
                 ? "Yayın tarihi gelince NFC sayfasında otomatik açılır. Yeniden göndermenize gerek yok."
                 : slideshowPreview
-                  ? "Filmi Hazırlamaya Gönder deyince slayt otomatik oluşur ve yayın tarihine göre otomatik yayınlanır."
+                  ? "After’ı Hazırla deyince slayt otomatik oluşur ve yayın tarihine göre yayınlanır."
                   : "Aşağıdan filmi izleyebilirsiniz."}
           </p>
           {slideshowPreview && previewSlides.length > 0 ? (
@@ -761,7 +738,6 @@ export function AdminAftermoviePanel({
                 <span className="admin-aftermovie__order-label">
                   {item.guestName} ·{" "}
                   {item.mediaType === "video" ? "Video" : "Foto"}
-                  {posterMediaId === item.mediaId ? " · Kapak" : ""}
                 </span>
                 <div className="admin-aftermovie__order-actions">
                   <button
@@ -795,117 +771,24 @@ export function AdminAftermoviePanel({
         )}
       </section>
 
-      {/* 4. Kapak Görseli */}
-      <section className="admin-premium-card">
-        <h3 className="admin-aftermovie__section-title">Kapak Görseli</h3>
-        <p className="admin-aftermovie__lead">
-          Film afişi olarak kullanılacak bir fotoğraf seçin.
-        </p>
-        <ul className="admin-aftermovie__poster-list">
-          {selectedMeta
-            .filter((m) => m.mediaType === "photo")
-            .map((item) => (
-              <li key={item.mediaId}>
-                <button
-                  type="button"
-                  disabled={!canEditSelection}
-                  className={cn(
-                    "admin-aftermovie__poster-btn",
-                    posterMediaId === item.mediaId && "is-active",
-                  )}
-                  onClick={() => setPosterMediaId(item.mediaId)}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={item.proxyUrl} alt="" />
-                  <span>
-                    {posterMediaId === item.mediaId
-                      ? "Kapak seçildi"
-                      : "Kapak Görseli Olarak Kullan"}
-                  </span>
-                </button>
-              </li>
-            ))}
-        </ul>
-        {selectedMeta.some((m) => m.mediaType === "photo") === false ? (
-          <p className="admin-aftermovie__hint">
-            Kapak için en az bir fotoğraf seçmelisiniz.
-          </p>
-        ) : null}
-      </section>
-
-      {/* 5–6. Film Bilgileri + Yayın */}
-      <section className="admin-premium-card admin-aftermovie__details">
-        <h3 className="admin-aftermovie__section-title">Film Bilgileri</h3>
-        <label className="admin-aftermovie__field">
-          Açılış metni
-          <input
-            value={openingText}
-            disabled={!canEditSelection && !readyForReview}
-            onChange={(e) => setOpeningText(e.target.value)}
-          />
-        </label>
-        <label className="admin-aftermovie__field">
-          Kapanış metni
-          <input
-            value={closingText}
-            disabled={!canEditSelection && !readyForReview}
-            onChange={(e) => setClosingText(e.target.value)}
-          />
-        </label>
-        <label className="admin-aftermovie__field">
-          Süre tercihi
-          <select
-            value={durationPreset}
-            disabled={!canEditSelection}
-            onChange={(e) =>
-              setDurationPreset(e.target.value as AftermovieDurationPreset)
-            }
-          >
-            <option value="short">Kısa Film (45–60 sn)</option>
-            <option value="standard">Standart Film (75–120 sn)</option>
-            <option value="long">Uzun Film (120–180 sn)</option>
-          </select>
-        </label>
-        <h3 className="admin-aftermovie__section-title">Yayın Tarihi</h3>
-        <label className="admin-aftermovie__field">
-          Yayın zamanı
-          <input
-            type="datetime-local"
-            value={publishAt}
-            onChange={(e) => setPublishAt(e.target.value)}
-          />
-        </label>
-      </section>
-
-      {/* 7. Actions */}
+      {/* Actions */}
       <div className="admin-aftermovie__actions admin-aftermovie__actions--sticky">
-        <button
-          type="button"
-          className="admin-premium-interactive"
-          disabled={saving || hardLocked || !canEditSelection}
-          onClick={() => void handleSave()}
-        >
-          Seçimleri Kaydet
-        </button>
         <button
           type="button"
           className="admin-premium-interactive admin-aftermovie__cta-primary"
           disabled={saving || hardLocked}
           onClick={openSubmitConfirm}
         >
-          Filmi Hazırlamaya Gönder
+          After’ı Hazırla
         </button>
         {submitBlockedReason ? (
           <p className="admin-aftermovie__hint" role="status">
             {submitBlockedReason}
-            {!hardLocked && !posterMediaId && photoCount >= AFTERMOVIE_PHOTO_MIN
-              ? " Kapak otomatik seçilecek."
-              : null}
           </p>
         ) : (
           <p className="admin-aftermovie__hint" role="status">
-            {photoCount} fotoğraf seçili
-            {effectivePosterId ? " · kapak hazır" : ""}. Gönderince slayt film oluşur.
+            {photoCount} fotoğraf seçili. Gönderince slayt film oluşur ve
+            yayınlanır.
           </p>
         )}
         {aftermovie?.status === "failed" ? (
@@ -922,9 +805,9 @@ export function AdminAftermoviePanel({
 
       <AdminConfirmModal
         open={submitConfirmOpen}
-        title="Filmi hazırlamaya gönder"
-        description="Seçtiğiniz anılar otomatik olarak slayt filme dönüşür ve yayın tarihine göre NFC sayfasında yayınlanır. Emin misiniz?"
-        confirmLabel="Evet, filmi oluştur ve yayınla"
+        title="After’ı hazırla"
+        description="Seçtiğiniz anılar kaydedilir, slayt filme dönüşür ve yayın tarihine göre NFC sayfasında yayınlanır. Emin misiniz?"
+        confirmLabel="Evet, After’ı hazırla"
         cancelLabel="Vazgeç"
         loading={saving}
         loadingLabel="Hazırlanıyor…"
