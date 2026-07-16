@@ -171,7 +171,7 @@ export function AftermovieSlideshow({
     );
   }
 
-  const showChrome = !autoStartMusic;
+  const showChrome = !_autoStartMusic;
 
   return (
     <div className={cn("aftermovie-slideshow", className)}>
