@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export const DEFAULT_AFTER_MUSIC = "/audio/memoora-after.mp3";
 
@@ -19,10 +19,23 @@ function toAbsoluteMusicUrl(src?: string | null): string {
 }
 
 /**
- * MEMOORA AFTER background music — independent of slideshow pause.
+ * MEMOORA AFTER background music with a visible unlock button for mobile browsers.
  */
 export function AftermovieBgm({ src, active = true }: AftermovieBgmProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const [playing, setPlaying] = useState(false);
+
+  const tryPlay = useCallback(() => {
+    const el = audioRef.current;
+    if (!el) return false;
+    el.muted = false;
+    el.volume = 0.6;
+    void el
+      .play()
+      .then(() => setPlaying(true))
+      .catch(() => setPlaying(false));
+    return true;
+  }, []);
 
   useEffect(() => {
     if (!active) return;
@@ -30,68 +43,72 @@ export function AftermovieBgm({ src, active = true }: AftermovieBgmProps) {
     if (!audio) return;
 
     const url = toAbsoluteMusicUrl(src);
-    if (audio.src !== url) {
+    if (audio.getAttribute("data-src") !== url) {
       audio.src = url;
+      audio.setAttribute("data-src", url);
     }
     audio.loop = true;
     audio.preload = "auto";
     audio.volume = 0.6;
     audio.muted = false;
 
-    const tryPlay = () => {
-      const el = audioRef.current;
-      if (!el) return;
-      el.muted = false;
-      el.volume = 0.6;
-      void el.play().catch(() => undefined);
-    };
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
 
+    audio.addEventListener("play", onPlay);
+    audio.addEventListener("playing", onPlay);
+    audio.addEventListener("pause", onPause);
     audio.load();
     tryPlay();
-    audio.addEventListener("canplay", tryPlay);
-    audio.addEventListener("loadeddata", tryPlay);
-
-    const unlock = () => tryPlay();
-    const opts: AddEventListenerOptions = { capture: true, passive: true };
-    document.addEventListener("touchstart", unlock, opts);
-    document.addEventListener("touchend", unlock, opts);
-    document.addEventListener("pointerdown", unlock, opts);
-    document.addEventListener("click", unlock, opts);
-
-    const retry = window.setInterval(() => {
-      const el = audioRef.current;
-      if (el && el.paused) tryPlay();
-    }, 500);
 
     return () => {
-      window.clearInterval(retry);
-      audio.removeEventListener("canplay", tryPlay);
-      audio.removeEventListener("loadeddata", tryPlay);
-      document.removeEventListener("touchstart", unlock, opts);
-      document.removeEventListener("touchend", unlock, opts);
-      document.removeEventListener("pointerdown", unlock, opts);
-      document.removeEventListener("click", unlock, opts);
+      audio.removeEventListener("play", onPlay);
+      audio.removeEventListener("playing", onPlay);
+      audio.removeEventListener("pause", onPause);
       audio.pause();
     };
-  }, [active, src]);
+  }, [active, src, tryPlay]);
 
   if (!active) return null;
 
   return (
-    <audio
-      ref={audioRef}
-      preload="auto"
-      autoPlay
-      loop
-      playsInline
-      controls={false}
-      style={{
-        position: "fixed",
-        width: 0,
-        height: 0,
-        opacity: 0,
-        pointerEvents: "none",
-      }}
-    />
+    <>
+      <audio
+        ref={audioRef}
+        preload="auto"
+        loop
+        playsInline
+        className="aftermovie-bgm__audio"
+      />
+
+      <button
+        type="button"
+        className={
+          playing
+            ? "aftermovie-bgm__unlock aftermovie-bgm__unlock--on"
+            : "aftermovie-bgm__unlock"
+        }
+        onClick={() => {
+          const el = audioRef.current;
+          if (!el) return;
+          if (!el.paused) {
+            el.pause();
+            setPlaying(false);
+            return;
+          }
+          // Synchronous play() inside click — required on iOS
+          el.muted = false;
+          el.volume = 0.6;
+          void el
+            .play()
+            .then(() => setPlaying(true))
+            .catch(() => setPlaying(false));
+        }}
+        aria-pressed={playing}
+        aria-label={playing ? "Sesi kapat" : "Sesi aç"}
+      >
+        {playing ? "Ses Açık" : "Sesi Aç"}
+      </button>
+    </>
   );
 }

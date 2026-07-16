@@ -644,6 +644,41 @@
   color: rgba(245, 241, 232, 0.88);
 }
 
+.aftermovie-bgm__audio {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.aftermovie-bgm__unlock {
+  position: fixed;
+  z-index: 80;
+  left: 50%;
+  bottom: max(22px, env(safe-area-inset-bottom, 0px) + 16px);
+  transform: translateX(-50%);
+  min-height: 48px;
+  padding: 0 22px;
+  border: 1px solid rgba(226, 199, 103, 0.55);
+  border-radius: 999px;
+  background: linear-gradient(110deg, #e1c467, #cfa83d);
+  color: #07110d;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.aftermovie-bgm__unlock--on {
+  background: rgba(7, 17, 13, 0.82);
+  color: rgba(226, 199, 103, 0.95);
+  border-color: rgba(226, 199, 103, 0.4);
+}
+
 .post-wedding__nav {
   display: flex;
   flex-wrap: wrap;
