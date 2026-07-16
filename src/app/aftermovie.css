@@ -355,7 +355,8 @@
 
 .aftermovie-slideshow {
   position: relative;
-  width: 100%;
+  width: min(920px, 100%);
+  margin-top: 28px;
   min-height: min(70svh, 520px);
   border-radius: 16px;
   overflow: hidden;
@@ -702,11 +703,6 @@
   font-size: 1.2rem;
   color: rgba(245, 241, 232, 0.88);
   text-align: center;
-}
-
-.aftermovie-slideshow {
-  width: min(920px, 100%);
-  margin-top: 28px;
 }
 
 .aftermovie-bgm {
