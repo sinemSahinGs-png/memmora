@@ -31,8 +31,9 @@ function toAbsolute(url: string): string {
 }
 
 /**
- * MEMOORA AFTER soundtrack with a reliable tap-to-play control.
- * Creates/plays Audio inside the click handler (required for iOS).
+ * MEMOORA AFTER soundtrack.
+ * Auto-starts when the browser allows; button toggles mute/pause.
+ * First user gesture anywhere also unlocks play (mobile).
  */
 export function AftermovieBgm({ src, active = true }: AftermovieBgmProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -40,30 +41,14 @@ export function AftermovieBgm({ src, active = true }: AftermovieBgmProps) {
   const [error, setError] = useState<string | null>(null);
   const url = resolveAftermovieMusicUrl(src);
 
-  useEffect(() => {
-    if (!active) return;
-    return () => {
-      const el = audioRef.current;
-      if (el) {
-        el.pause();
-        el.src = "";
-      }
-      audioRef.current = null;
-    };
-  }, [active, url]);
-
-  if (!active) return null;
-
-  const startMusic = () => {
-    setError(null);
+  const ensureAudio = () => {
     const absolute = toAbsolute(url);
-
-    // Reuse one element, but ensure play() is invoked in this click stack.
     let el = audioRef.current;
     if (!el) {
-      el = new Audio();
+      el = new Audio(absolute);
       el.loop = true;
       el.preload = "auto";
+      el.volume = 0.7;
       audioRef.current = el;
       el.addEventListener("playing", () => setPlaying(true));
       el.addEventListener("pause", () => setPlaying(false));
@@ -72,15 +57,17 @@ export function AftermovieBgm({ src, active = true }: AftermovieBgmProps) {
         setPlaying(false);
         setError("Müzik yüklenemedi");
       });
-    }
-
-    if (!el.src || el.src !== absolute) {
+    } else if (el.src !== absolute) {
       el.src = absolute;
     }
-    el.src = absolute;
     el.muted = false;
     el.volume = 0.7;
+    return el;
+  };
 
+  const startMusic = () => {
+    setError(null);
+    const el = ensureAudio();
     const playPromise = el.play();
     if (playPromise !== undefined) {
       void playPromise
@@ -88,30 +75,46 @@ export function AftermovieBgm({ src, active = true }: AftermovieBgmProps) {
           setPlaying(true);
           setError(null);
         })
-        .catch((err: unknown) => {
+        .catch(() => {
           setPlaying(false);
-          const message =
-            err instanceof Error ? err.message : "Ses başlatılamadı";
-          setError(message);
-          // Last resort: recreate element inside the same gesture
-          try {
-            const fresh = new Audio(absolute);
-            fresh.loop = true;
-            fresh.volume = 0.7;
-            audioRef.current = fresh;
-            void fresh.play().then(() => {
-              setPlaying(true);
-              setError(null);
-            });
-          } catch {
-            setError("Tarayıcı sesi engelledi");
-          }
         });
     }
   };
 
+  useEffect(() => {
+    if (!active) return;
+
+    // Prefetch + autoplay attempt on mount
+    ensureAudio();
+    startMusic();
+
+    const unlock = () => {
+      if (audioRef.current && !audioRef.current.paused) return;
+      startMusic();
+    };
+    const opts: AddEventListenerOptions = { capture: true, passive: true };
+    document.addEventListener("pointerdown", unlock, opts);
+    document.addEventListener("touchstart", unlock, opts);
+    document.addEventListener("keydown", unlock, opts);
+
+    return () => {
+      document.removeEventListener("pointerdown", unlock, opts);
+      document.removeEventListener("touchstart", unlock, opts);
+      document.removeEventListener("keydown", unlock, opts);
+      const el = audioRef.current;
+      if (el) {
+        el.pause();
+        el.src = "";
+      }
+      audioRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount once per src
+  }, [active, url]);
+
+  if (!active) return null;
+
   const toggle = () => {
-    const el = audioRef.current;
+    const el = audioRef.current ?? ensureAudio();
     if (el && !el.paused) {
       el.pause();
       setPlaying(false);

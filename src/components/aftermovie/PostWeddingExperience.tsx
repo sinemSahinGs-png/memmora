@@ -8,7 +8,12 @@ import {
   AftermovieSlideshow,
   mediaItemsToSlides,
 } from "./AftermovieSlideshow";
-import { AftermovieBgm, DEFAULT_AFTER_MUSIC, resolveAftermovieMusicUrl } from "./AftermovieBgm";
+import {
+  AftermovieBgm,
+  DEFAULT_AFTER_MUSIC,
+  resolveAftermovieMusicUrl,
+} from "./AftermovieBgm";
+import { FadeWords } from "./FadeWords";
 import { getCoupleDisplayTitle } from "@/lib/couple-utils";
 import {
   getAftermoviePlaybackPath,
@@ -64,20 +69,53 @@ export function PostWeddingExperience({
 
   return (
     <div className="post-wedding">
-      {/* Always mount — independent of slideshow / hold-to-pause */}
       <AftermovieBgm src={musicUrl} active />
 
       <section className="post-wedding__hero" id="aftermovie">
-        <p className="post-wedding__eyebrow">MEMOORA AFTER</p>
-        <h1 className="post-wedding__headline">
-          Hikâyeniz şimdi
-          <br />
-          film oldu.
-        </h1>
-        <p className="post-wedding__names">
-          {title}
-          {dateLabel ? ` — ${dateLabel}` : ""}
-        </p>
+        <div className="post-wedding__copy">
+          <FadeWords
+            as="p"
+            className="post-wedding__eyebrow"
+            text="MEMOORA AFTER"
+            startDelayMs={80}
+            stepMs={90}
+          />
+          <h1 className="post-wedding__headline">
+            <FadeWords
+              as="span"
+              className="post-wedding__headline-line"
+              text="Hikâyeniz şimdi"
+              startDelayMs={280}
+              stepMs={140}
+            />
+            <br />
+            <FadeWords
+              as="span"
+              className="post-wedding__headline-line"
+              text="film oldu."
+              startDelayMs={700}
+              stepMs={160}
+            />
+          </h1>
+          <div className="post-wedding__names">
+            <FadeWords
+              as="p"
+              className="post-wedding__names-title"
+              text={title}
+              startDelayMs={1100}
+              stepMs={180}
+            />
+            {dateLabel ? (
+              <FadeWords
+                as="p"
+                className="post-wedding__names-date"
+                text={dateLabel}
+                startDelayMs={1500}
+                stepMs={120}
+              />
+            ) : null}
+          </div>
+        </div>
 
         {useSlideshow ? (
           <AftermovieSlideshow
@@ -104,7 +142,13 @@ export function PostWeddingExperience({
         )}
 
         {completed ? (
-          <p className="post-wedding__closing">Anılar yaşamaya devam ediyor.</p>
+          <FadeWords
+            as="p"
+            className="post-wedding__closing"
+            text="Anılar yaşamaya devam ediyor."
+            startDelayMs={80}
+            stepMs={140}
+          />
         ) : null}
       </section>
     </div>
