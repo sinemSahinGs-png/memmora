@@ -8,7 +8,7 @@ import {
   AftermovieSlideshow,
   mediaItemsToSlides,
 } from "./AftermovieSlideshow";
-import { DEFAULT_AFTER_MUSIC } from "./AftermovieBgm";
+import { AftermovieBgm, DEFAULT_AFTER_MUSIC } from "./AftermovieBgm";
 import { getCoupleDisplayTitle } from "@/lib/couple-utils";
 import {
   getAftermoviePlaybackPath,
@@ -48,6 +48,7 @@ export function PostWeddingExperience({
 
   const musicUrl =
     aftermovie.music?.fileUrl?.trim() || DEFAULT_AFTER_MUSIC;
+
   const dateLabel = couple.weddingDate
     ? new Date(
         couple.weddingDate.includes("T")
@@ -62,6 +63,9 @@ export function PostWeddingExperience({
 
   return (
     <div className="post-wedding">
+      {/* Always mount — independent of slideshow / hold-to-pause */}
+      <AftermovieBgm src={musicUrl} active />
+
       <section className="post-wedding__hero" id="aftermovie">
         <p className="post-wedding__eyebrow">MEMOORA AFTER</p>
         <h1 className="post-wedding__headline">
@@ -82,10 +86,10 @@ export function PostWeddingExperience({
             closingText={aftermovie.closingText}
             weddingDateLabel={dateLabel}
             durationPreset={aftermovie.durationPreset}
-            musicUrl={musicUrl}
+            musicUrl={null}
             posterUrl={poster}
             showArchiveLinks={false}
-            autoStartMusic
+            autoStartMusic={false}
             onComplete={() => setCompleted(true)}
           />
         ) : (

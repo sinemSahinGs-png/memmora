@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import type { AftermovieDurationPreset, AftermovieMediaItem } from "@/lib/aftermovie/types";
 import { cn } from "@/lib/utils";
-import { AftermovieBgm, DEFAULT_AFTER_MUSIC } from "./AftermovieBgm";
 
 export interface SlideshowSlide {
   id: string;
@@ -52,13 +51,15 @@ export function AftermovieSlideshow({
   closingText,
   weddingDateLabel,
   durationPreset = "standard",
-  musicUrl,
+  musicUrl: _musicUrl,
   posterUrl,
   showArchiveLinks = true,
-  autoStartMusic = false,
+  autoStartMusic: _autoStartMusic = false,
   onComplete,
   className,
 }: AftermovieSlideshowProps) {
+  void _musicUrl;
+  void _autoStartMusic;
   const [phase, setPhase] = useState<Phase>({ kind: "opening" });
   const [paused, setPaused] = useState(false);
   const [error, setError] = useState(false);
@@ -66,12 +67,6 @@ export function AftermovieSlideshow({
   const completedOnceRef = useRef(false);
   const holdTimerRef = useRef<number | null>(null);
   const hold = photoHoldMs(durationPreset);
-
-  const resolvedMusicUrl = useMemo(() => {
-    const fromProp = musicUrl?.trim();
-    if (fromProp) return fromProp;
-    return autoStartMusic ? DEFAULT_AFTER_MUSIC : null;
-  }, [autoStartMusic, musicUrl]);
 
   const ordered = useMemo(
     () => slides.filter((s) => Boolean(s.src)),
@@ -180,10 +175,6 @@ export function AftermovieSlideshow({
 
   return (
     <div className={cn("aftermovie-slideshow", className)}>
-      {autoStartMusic && resolvedMusicUrl ? (
-        <AftermovieBgm src={resolvedMusicUrl} paused={paused} active />
-      ) : null}
-
       {posterUrl && phase.kind === "opening" ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={posterUrl} alt="" className="aftermovie-slideshow__bg" />
