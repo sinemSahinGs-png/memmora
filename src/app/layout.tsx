@@ -29,6 +29,13 @@ export const metadata: Metadata = {
   title: "Memoora — Dijital Hatıra Ağacı",
   description:
     "Her mesaj ağaca bir yaprak ekler. NFC ile açılan premium dijital hatıra ağacı.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
 };
 
 export default function RootLayout({

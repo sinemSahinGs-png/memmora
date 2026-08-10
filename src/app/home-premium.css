@@ -2074,6 +2074,9 @@ body:has(.memoora-home-premium) {
   display: block;
   filter: drop-shadow(0 28px 48px rgba(0, 0, 0, 0.45));
   transform: rotate(-4deg);
+  transform-origin: center 70%;
+  animation: cine-product-sway-magnet 7.5s ease-in-out infinite;
+  will-change: transform;
 }
 
 .cine-product__nfc-glow {
@@ -2142,6 +2145,36 @@ body:has(.memoora-home-premium) {
   height: auto;
   display: block;
   filter: drop-shadow(0 24px 40px rgba(0, 0, 0, 0.4));
+  transform-origin: center 18%;
+  animation: cine-product-sway-key 6.8s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes cine-product-sway-magnet {
+  0%,
+  100% {
+    transform: rotate(-4deg) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: rotate(2deg) translate3d(0, -8px, 0);
+  }
+}
+
+@keyframes cine-product-sway-key {
+  0%,
+  100% {
+    transform: rotate(2deg) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: rotate(-3deg) translate3d(0, -6px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cine-product__leaf-img,
+  .cine-product__keychain-img {
+    animation: none;
+  }
 }
 
 @media (min-width: 1024px) {

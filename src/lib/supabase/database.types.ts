@@ -509,6 +509,113 @@ export interface Database {
           },
         ];
       };
+      memoora_orders: {
+        Row: {
+          id: string;
+          bride_name: string;
+          groom_name: string;
+          wedding_date: string;
+          subtotal: number;
+          vat: number;
+          total: number;
+          vat_rate: number;
+          payment_status: string;
+          order_status: string;
+          payment_provider: string | null;
+          payment_reference: string | null;
+          customer_email: string | null;
+          customer_phone: string | null;
+          customer_name: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          bride_name: string;
+          groom_name: string;
+          wedding_date: string;
+          subtotal: number;
+          vat: number;
+          total: number;
+          vat_rate?: number;
+          payment_status?: string;
+          order_status?: string;
+          payment_provider?: string | null;
+          payment_reference?: string | null;
+          customer_email?: string | null;
+          customer_phone?: string | null;
+          customer_name?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          bride_name?: string;
+          groom_name?: string;
+          wedding_date?: string;
+          subtotal?: number;
+          vat?: number;
+          total?: number;
+          vat_rate?: number;
+          payment_status?: string;
+          order_status?: string;
+          payment_provider?: string | null;
+          payment_reference?: string | null;
+          customer_email?: string | null;
+          customer_phone?: string | null;
+          customer_name?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      memoora_order_items: {
+        Row: {
+          id: string;
+          order_id: string;
+          product_type: string;
+          product_name: string;
+          quantity: number;
+          unit_price: number;
+          line_subtotal: number;
+          line_vat: number;
+          line_total: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          order_id: string;
+          product_type: string;
+          product_name: string;
+          quantity: number;
+          unit_price: number;
+          line_subtotal: number;
+          line_vat: number;
+          line_total: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          order_id?: string;
+          product_type?: string;
+          product_name?: string;
+          quantity?: number;
+          unit_price?: number;
+          line_subtotal?: number;
+          line_vat?: number;
+          line_total?: number;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "memoora_order_items_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "memoora_orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       aftermovie_music: {
         Row: {
           id: string;

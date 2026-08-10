@@ -7,9 +7,9 @@ export interface HomeDemoCouple {
 export const HOME_HERO = {
   headlineLines: ["Düğün", "anılarını", "yaşat."] as const,
   body:
-    "Memoora ile ücretsiz dijital davetiye, NFC ürünler, anı mesajları ve büyüyen anı ağacı tek bir deneyimde.",
+    "Memoora ile ücretsiz dijital davetiye, NFC ürünler ve interaktif düğün deneyimi tek bir yerde.",
   primaryCta: "Demo Düğünü Gör",
-  secondaryCta: "Nasıl Çalışır?",
+  secondaryCta: "Satın Al",
 } as const;
 
 export const HOME_FEATURE_STRIP = [
@@ -39,17 +39,17 @@ export const HOME_PRODUCTS = [
   {
     title: "NFC Magnet",
     gradient: "linear-gradient(145deg, #f6edd8 0%, #e8d4a8 55%, #c9922e 100%)",
-    href: "/order?package=premium",
+    href: "/satinal",
   },
   {
     title: "NFC Anahtarlık",
     gradient: "linear-gradient(145deg, #eef3e4 0%, #c8d4a8 50%, #6f7f42 100%)",
-    href: "/order?package=premium",
+    href: "/satinal",
   },
   {
     title: "Dijital Davetiye",
     gradient: "linear-gradient(145deg, #fffdf8 0%, #f8f4e8 45%, #d4af37 100%)",
-    href: "/order?package=basic",
+    href: "/satinal",
   },
 ] as const;
 

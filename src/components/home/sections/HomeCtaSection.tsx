@@ -89,8 +89,8 @@ export function HomeCtaSection({ demoHref }: HomeCtaSectionProps) {
         </p>
         <div className="cine-cta__actions">
           <MagneticButton href={demoHref}>Demo Düğünü Gör</MagneticButton>
-          <Link href="#nfc-urunler" className="cine-btn cine-btn--ghost">
-            NFC Ürünlerini İncele
+          <Link href="/satinal" className="cine-btn cine-btn--ghost">
+            Satın Al
           </Link>
         </div>
         <p className="cine-cta__note">Dijital davetiye ücretsizdir.</p>

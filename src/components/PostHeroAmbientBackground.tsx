@@ -119,18 +119,6 @@ const STATES: { selector: string; vars: AmbientState }[] = [
     },
   },
   {
-    selector: "#ani-agaci",
-    vars: {
-      ...BASE,
-      "--ambient-primary-x": "46%",
-      "--ambient-primary-y": "44%",
-      "--ambient-primary-alpha": 0.2,
-      "--ambient-gold-alpha": 0.04,
-      "--ambient-haze-alpha": 0.46,
-      "--ambient-vignette-strength": 0.52,
-    },
-  },
-  {
     selector: "#deneyim-ozet",
     vars: {
       ...BASE,

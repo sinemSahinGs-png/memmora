@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ASSETS } from "@/lib/assets";
+import { PRODUCT_ASSETS } from "@/lib/memoora-purchase/products";
 import { useGsapContext } from "@/hooks/useGsapContext";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { SplitTextReveal } from "@/components/animation/SplitTextReveal";
@@ -96,8 +96,8 @@ export function PersonalizedProductsSection() {
           <div className="cine-product__magnet">
             <div className="cine-product__leaf-stage">
               <Image
-                src={ASSETS.leafMagnet}
-                alt="Valeriya ve Utku baş harfli yaprak NFC magnet"
+                src={PRODUCT_ASSETS.magnet.src}
+                alt={PRODUCT_ASSETS.magnet.alt}
                 width={460}
                 height={613}
                 className="cine-product__leaf-img"
@@ -133,8 +133,8 @@ export function PersonalizedProductsSection() {
         <article className="cine-product__keychain">
           <div className="cine-product__keychain-visual">
             <Image
-              src={ASSETS.leafKeychain}
-              alt="Yaprak NFC anahtarlık — halka, zincir ve yaprak gövde"
+              src={PRODUCT_ASSETS.keychain.src}
+              alt={PRODUCT_ASSETS.keychain.alt}
               width={420}
               height={604}
               className="cine-product__keychain-img"

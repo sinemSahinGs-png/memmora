@@ -1,0 +1,813 @@
+/* Memoora /satinal purchase flow — premium emerald / ivory / champagne */
+
+.purchase-flow {
+  --pf-bg: #020806;
+  --pf-panel: rgba(8, 28, 20, 0.72);
+  --pf-ivory: #f5f1e8;
+  --pf-muted: rgba(245, 241, 232, 0.68);
+  --pf-gold: #d4af37;
+  --pf-gold-soft: #f1d889;
+  --pf-line: rgba(245, 241, 232, 0.12);
+  --pf-emerald: #0f2d24;
+
+  min-height: 100dvh;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(31, 92, 69, 0.28), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(212, 175, 55, 0.1), transparent 50%),
+    linear-gradient(180deg, #03110c 0%, var(--pf-bg) 45%, #020806 100%);
+  color: var(--pf-ivory);
+  font-family: var(--font-body), Manrope, system-ui, sans-serif;
+  padding: 20px 18px 48px;
+}
+
+.purchase-flow__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  max-width: 1100px;
+  margin: 0 auto 28px;
+}
+
+.purchase-flow__logo {
+  font-family: var(--font-display), "Bodoni Moda", Georgia, serif;
+  font-size: 1.35rem;
+  letter-spacing: 0.18em;
+  text-decoration: none;
+  color: var(--pf-ivory);
+}
+
+.purchase-flow__tag {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(241, 216, 137, 0.85);
+}
+
+.purchase-flow__steps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  max-width: 1100px;
+  margin: 0 auto 28px;
+}
+
+.purchase-flow__step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.45;
+  transition: opacity 0.25s ease;
+}
+
+.purchase-flow__step.is-active,
+.purchase-flow__step.is-done {
+  opacity: 1;
+}
+
+.purchase-flow__step-index {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.75rem;
+  border: 1px solid var(--pf-line);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.purchase-flow__step.is-active .purchase-flow__step-index {
+  border-color: var(--pf-gold);
+  color: var(--pf-gold-soft);
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.12);
+}
+
+.purchase-flow__step.is-done .purchase-flow__step-index {
+  background: rgba(31, 92, 69, 0.55);
+  border-color: rgba(58, 148, 112, 0.55);
+}
+
+.purchase-flow__step-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--pf-muted);
+}
+
+.purchase-flow__layout {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  gap: 22px;
+}
+
+@media (min-width: 960px) {
+  .purchase-flow__layout {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    align-items: start;
+  }
+}
+
+.purchase-flow__main {
+  min-width: 0;
+}
+
+.purchase-flow__panel {
+  background: var(--pf-panel);
+  border: 1px solid var(--pf-line);
+  border-radius: 22px;
+  padding: 22px 18px 24px;
+  backdrop-filter: blur(18px);
+}
+
+@media (min-width: 768px) {
+  .purchase-flow__panel {
+    padding: 28px 28px 30px;
+  }
+}
+
+.purchase-flow__panel h1 {
+  margin: 0;
+  font-family: var(--font-display), "Bodoni Moda", Georgia, serif;
+  font-size: clamp(1.85rem, 6vw, 2.55rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.purchase-flow__lead {
+  margin: 12px 0 0;
+  max-width: 38rem;
+  color: var(--pf-muted);
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+
+.purchase-products {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+@media (min-width: 720px) {
+  .purchase-products {
+    grid-template-columns: 1.15fr 0.85fr;
+  }
+}
+
+.purchase-product {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--pf-line);
+  background: rgba(2, 8, 6, 0.35);
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+}
+
+.purchase-product.is-selected {
+  border-color: rgba(212, 175, 55, 0.45);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+.purchase-product--featured {
+  background:
+    linear-gradient(160deg, rgba(31, 92, 69, 0.28), rgba(2, 8, 6, 0.4));
+}
+
+.purchase-product__visual {
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+  perspective: 600px;
+}
+
+.purchase-product__orbit {
+  display: grid;
+  place-items: center;
+  animation: purchase-product-float 5.6s ease-in-out infinite;
+  will-change: transform;
+}
+
+.purchase-product--featured .purchase-product__orbit {
+  animation-duration: 6.4s;
+  animation-delay: -1.2s;
+}
+
+.purchase-product__img,
+.purchase-product__visual img {
+  width: auto;
+  height: auto;
+  max-height: 220px;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.4));
+  transform-origin: center 70%;
+  animation: purchase-product-sway 7s ease-in-out infinite;
+}
+
+.purchase-product--featured .purchase-product__img,
+.purchase-product--featured .purchase-product__visual img {
+  animation-duration: 8s;
+  animation-delay: -0.8s;
+}
+
+@keyframes purchase-product-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0);
+  }
+}
+
+@keyframes purchase-product-sway {
+  0%,
+  100% {
+    transform: rotate(-3.5deg);
+  }
+  50% {
+    transform: rotate(3.5deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .purchase-product__orbit,
+  .purchase-product__img,
+  .purchase-product__visual img {
+    animation: none;
+  }
+}
+
+.purchase-product__body h2 {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 500;
+}
+
+.purchase-product__body p {
+  margin: 8px 0 0;
+  color: var(--pf-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.purchase-product__price {
+  color: var(--pf-gold-soft) !important;
+  font-size: 1.05rem !important;
+}
+
+.purchase-product__price span {
+  color: var(--pf-muted);
+  font-size: 0.82rem;
+}
+
+.purchase-qty-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.purchase-qty {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid var(--pf-line);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.purchase-qty button {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(245, 241, 232, 0.08);
+  color: var(--pf-ivory);
+  font-size: 1.15rem;
+  cursor: pointer;
+}
+
+.purchase-qty input {
+  width: 56px;
+  border: 0;
+  background: transparent;
+  color: var(--pf-ivory);
+  text-align: center;
+  font-size: 1rem;
+  outline: none;
+}
+
+.purchase-qty-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(243, 180, 164, 0.28);
+  background: rgba(243, 180, 164, 0.08);
+  color: #f3b4a4;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition:
+    opacity 0.2s ease,
+    background 0.2s ease;
+}
+
+.purchase-qty-reset:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.purchase-qty-reset:not(:disabled):hover {
+  background: rgba(243, 180, 164, 0.16);
+}
+
+.purchase-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+  max-width: 420px;
+}
+
+.purchase-form label {
+  display: grid;
+  gap: 8px;
+}
+
+.purchase-form label span {
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(241, 216, 137, 0.8);
+}
+
+.purchase-form input {
+  height: 48px;
+  border-radius: 14px;
+  border: 1px solid var(--pf-line);
+  background: rgba(2, 8, 6, 0.45);
+  color: var(--pf-ivory);
+  padding: 0 14px;
+  font-size: 1rem;
+  outline: none;
+}
+
+.purchase-form input:focus {
+  border-color: rgba(212, 175, 55, 0.55);
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+}
+
+.purchase-form__hint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--pf-muted);
+}
+
+.purchase-form__date {
+  display: grid;
+  gap: 8px;
+}
+
+.purchase-form__date > span {
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(241, 216, 137, 0.8);
+}
+
+/* Wedding calendar picker */
+.wedding-date-picker {
+  position: relative;
+}
+
+.wedding-date-picker__trigger {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--pf-line);
+  background: rgba(2, 8, 6, 0.45);
+  color: var(--pf-muted);
+  padding: 0 14px;
+  font-size: 1rem;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.wedding-date-picker__trigger.has-value {
+  color: var(--pf-ivory);
+}
+
+.wedding-date-picker__trigger.is-open,
+.wedding-date-picker__trigger:focus-visible {
+  border-color: rgba(212, 175, 55, 0.55);
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+  outline: none;
+}
+
+.wedding-date-picker__icon {
+  color: var(--pf-gold-soft);
+  display: grid;
+  place-items: center;
+}
+
+.wedding-date-picker__popover {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  max-width: 360px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  background:
+    linear-gradient(160deg, rgba(12, 36, 26, 0.98), rgba(4, 14, 10, 0.98));
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(16px);
+}
+
+.wedding-date-picker__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.wedding-date-picker__nav p {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.05rem;
+}
+
+.wedding-date-picker__nav button {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--pf-line);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--pf-ivory);
+  font-size: 1.15rem;
+  cursor: pointer;
+}
+
+.wedding-date-picker__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.wedding-date-picker__weekdays span {
+  text-align: center;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(241, 216, 137, 0.7);
+}
+
+.wedding-date-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.wedding-date-picker__day {
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--pf-ivory);
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.wedding-date-picker__day.is-outside {
+  opacity: 0.28;
+}
+
+.wedding-date-picker__day.is-today {
+  box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.35);
+}
+
+.wedding-date-picker__day.is-selected {
+  background: linear-gradient(135deg, #d4af37, #f1d889);
+  color: #0b1f18;
+  font-weight: 600;
+}
+
+.wedding-date-picker__day:disabled {
+  opacity: 0.22;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.wedding-date-picker__day:not(:disabled):hover {
+  background: rgba(245, 241, 232, 0.08);
+}
+
+.purchase-flow__nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.purchase-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.purchase-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.purchase-btn--primary {
+  background: linear-gradient(135deg, #d4af37, #f1d889);
+  color: #0b1f18;
+}
+
+.purchase-btn--primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.purchase-btn--ghost {
+  background: transparent;
+  border-color: var(--pf-line);
+  color: var(--pf-ivory);
+}
+
+.purchase-flow__error {
+  margin: 14px 0 0;
+  color: #f3b4a4;
+  font-size: 0.92rem;
+}
+
+.purchase-summary {
+  position: sticky;
+  top: 18px;
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid var(--pf-line);
+  background: rgba(8, 28, 20, 0.78);
+  backdrop-filter: blur(16px);
+}
+
+.purchase-summary__eyebrow {
+  margin: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(241, 216, 137, 0.85);
+}
+
+.purchase-summary h2 {
+  margin: 10px 0 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.45rem;
+  font-weight: 500;
+}
+
+.purchase-summary__date {
+  margin: 6px 0 0;
+  color: var(--pf-muted);
+  font-size: 0.9rem;
+}
+
+.purchase-summary__lines {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.purchase-summary__lines li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.9rem;
+  color: var(--pf-muted);
+}
+
+.purchase-summary__lines .is-empty {
+  opacity: 0.55;
+}
+
+.purchase-summary__totals {
+  margin: 18px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--pf-line);
+  display: grid;
+  gap: 8px;
+}
+
+.purchase-summary__totals div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.92rem;
+}
+
+.purchase-summary__totals dt {
+  margin: 0;
+  color: var(--pf-muted);
+}
+
+.purchase-summary__totals dd {
+  margin: 0;
+}
+
+.purchase-summary__totals .is-total {
+  margin-top: 4px;
+  font-size: 1.08rem;
+  color: var(--pf-gold-soft);
+}
+
+.purchase-preview {
+  display: grid;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.purchase-preview__tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid var(--pf-line);
+  background: rgba(2, 8, 6, 0.35);
+}
+
+.purchase-preview__tabs button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--pf-muted);
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.purchase-preview__tabs button.is-active {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.95), rgba(241, 216, 137, 0.95));
+  color: #0b1f18;
+  font-weight: 600;
+}
+
+.purchase-preview__stage {
+  border-radius: 18px;
+  border: 1px solid var(--pf-line);
+  background: rgba(2, 8, 6, 0.4);
+  padding: 12px;
+}
+
+.purchase-preview__eyebrow {
+  margin: 0 0 10px;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(241, 216, 137, 0.85);
+}
+
+.purchase-preview__wedding {
+  position: relative;
+  height: min(68vh, 560px);
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgba(245, 241, 232, 0.08);
+  background: #0b1f18;
+  pointer-events: none;
+}
+
+.purchase-preview__wedding .hero-section {
+  min-height: 100% !important;
+  height: 100% !important;
+}
+
+.purchase-preview__invite-shell {
+  position: relative;
+  height: min(72vh, 620px);
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid rgba(245, 241, 232, 0.14);
+  background: #050505;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+}
+
+.purchase-preview__invite-shell .invite-page--contained {
+  height: 100%;
+  min-height: 100%;
+  position: relative;
+}
+
+.purchase-preview__invite-shell .invite-page--contained .sceneContained,
+.purchase-preview__invite-shell .invite-page--contained [class*="sceneContained"] {
+  height: 100%;
+}
+
+.purchase-preview__hint {
+  margin: 12px 4px 2px;
+  font-size: 0.84rem;
+  color: var(--pf-muted);
+  line-height: 1.45;
+}
+
+.purchase-review {
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--pf-line);
+  background: rgba(2, 8, 6, 0.35);
+}
+
+.purchase-review ul {
+  margin: 12px 0;
+  padding-left: 18px;
+  color: var(--pf-muted);
+}
+
+.purchase-review__total {
+  margin: 0;
+  color: var(--pf-gold-soft);
+  font-size: 1.1rem;
+}
+
+.purchase-confirm {
+  margin-top: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.purchase-payment-note {
+  margin-top: 8px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(241, 216, 137, 0.28);
+  background: rgba(212, 175, 55, 0.08);
+}
+
+.purchase-payment-note h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 500;
+}
+
+.purchase-payment-note p {
+  margin: 8px 0 0;
+  color: var(--pf-muted);
+  font-size: 0.9rem;
+}
+
+.purchase-payment-note ul {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: var(--pf-muted);
+  font-size: 0.86rem;
+  display: grid;
+  gap: 6px;
+}
+
+@media (max-width: 640px) {
+  .purchase-flow__step-label {
+    display: none;
+  }
+
+  .purchase-flow__steps {
+    gap: 4px;
+  }
+}

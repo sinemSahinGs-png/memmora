@@ -12,8 +12,13 @@ import styles from "./PremiumInviteExperience.module.css";
 
 interface PremiumInviteExperienceProps {
   couple: Couple;
-  /** Homepage phone preview — relative layout, no fixed fullscreen shell */
+  /** Homepage phone preview — relative layout, envelope-only */
   embedded?: boolean;
+  /**
+   * Contained real invite UI (names + open flow) for purchase / marketing
+   * previews — avoids fixed fullscreen shell.
+   */
+  contained?: boolean;
 }
 
 function EmbeddedInviteEnvelope() {
@@ -41,12 +46,21 @@ function EmbeddedInviteEnvelope() {
 export function PremiumInviteExperience({
   couple,
   embedded = false,
+  contained = false,
 }: PremiumInviteExperienceProps) {
-  if (embedded) return <EmbeddedInviteEnvelope />;
-  return <FullPremiumInviteExperience couple={couple} />;
+  if (embedded && !contained) return <EmbeddedInviteEnvelope />;
+  return (
+    <FullPremiumInviteExperience couple={couple} contained={contained} />
+  );
 }
 
-function FullPremiumInviteExperience({ couple }: { couple: Couple }) {
+function FullPremiumInviteExperience({
+  couple,
+  contained = false,
+}: {
+  couple: Couple;
+  contained?: boolean;
+}) {
   const [stage, setStage] = useState<InviteStage>("closed");
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -167,9 +181,11 @@ function FullPremiumInviteExperience({ couple }: { couple: Couple }) {
   const showPoster = stage === "opened";
 
   return (
-    <div className="invite-page invite-page--premium">
-      <div className={styles.scene}>
-        <div className={styles.frame}>
+    <div
+      className={`invite-page invite-page--premium${contained ? " invite-page--contained" : ""}`}
+    >
+      <div className={`${styles.scene}${contained ? ` ${styles.sceneEmbedded} ${styles.sceneContained}` : ""}`}>
+        <div className={`${styles.frame}${contained ? ` ${styles.frameEmbedded} ${styles.frameContained}` : ""}`}>
           <div className={styles.frameBody}>
           <div
             className={`${styles.bgLayer} ${stage !== "closed" ? styles.bgLayerHidden : ""}`}

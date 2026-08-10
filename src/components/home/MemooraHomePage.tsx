@@ -7,7 +7,6 @@ import { DigitalInvitationSection } from "@/components/home/sections/DigitalInvi
 import { HomeCtaSection } from "@/components/home/sections/HomeCtaSection";
 import { InteractiveQuizSection } from "@/components/home/sections/InteractiveQuizSection";
 import { ParticipantManagementSection } from "@/components/home/sections/ParticipantManagementSection";
-import { LivingMemoryTreeSection } from "@/components/home/sections/LivingMemoryTreeSection";
 import { PersonalizedProductsSection } from "@/components/home/sections/PersonalizedProductsSection";
 import { StoryManifestoSection } from "@/components/home/sections/StoryManifestoSection";
 import { SharedMemoriesArchiveSection } from "@/components/home/SharedMemoriesArchiveSection";
@@ -37,7 +36,6 @@ export function MemooraHomePage({ demos }: MemooraHomePageProps) {
             <ParticipantManagementSection />
             <InteractiveQuizSection />
             <PersonalizedProductsSection />
-            <LivingMemoryTreeSection />
             <CompleteExperienceSection />
             <HomeCtaSection demoHref={demoHref} />
             <PremiumHomeFooter />

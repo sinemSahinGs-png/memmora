@@ -9,19 +9,18 @@ export type SharedMemory = {
   objectPosition?: string;
 };
 
-const SOURCES = [
-  "/assets/memories/shared-01.jpg",
-  "/assets/memories/shared-02.jpg",
-  "/assets/memories/shared-03.jpg",
-  "/assets/memories/shared-04.jpg",
-  "/assets/memories/shared-05.jpg",
-  "/assets/memories/shared-06.jpg",
-  "/assets/memories/wedding-01.jpg",
-  "/assets/memories/wedding-02.jpg",
-  "/assets/memories/wedding-03.jpg",
-  "/assets/memories/wedding-04.jpg",
-  "/assets/memories/wedding-05.jpg",
-  "/assets/memories/wedding-06.jpg",
+/**
+ * Only these 7 real photos are used.
+ * The ring still looks dense by repeating them across many cards.
+ */
+export const SHARED_MEMORY_SOURCES = [
+  "/images/memoora/shared-memories/01.png",
+  "/images/memoora/shared-memories/02.png",
+  "/images/memoora/shared-memories/03.png",
+  "/images/memoora/shared-memories/04.png",
+  "/images/memoora/shared-memories/05.png",
+  "/images/memoora/shared-memories/06.png",
+  "/images/memoora/shared-memories/07.png",
 ] as const;
 
 const PROJECTS = [
@@ -95,43 +94,9 @@ const PROJECTS = [
     caption: "Masadaki kahkahalar.",
     time: "20:27",
   },
-  {
-    guestName: "Ece",
-    category: "İlk Dans",
-    title: "Yavaş dans",
-    caption: "Dans pistine ilk çıktıkları an.",
-    time: "22:55",
-  },
-  {
-    guestName: "Kerem",
-    category: "Arkadaşlar",
-    title: "Grup karesi",
-    caption: "Gecenin en kalabalık karesi.",
-    time: "23:40",
-  },
-  {
-    guestName: "Zeynep",
-    category: "Hazırlık",
-    title: "Detaylar",
-    caption: "Törenden hemen önce.",
-    time: "16:50",
-  },
-  {
-    guestName: "Burak",
-    category: "Nikâh",
-    title: "Yüzük",
-    caption: "Evet demeden bir saniye önce.",
-    time: "19:20",
-  },
-  {
-    guestName: "Selin",
-    category: "Aile",
-    title: "Kucaklaşma",
-    caption: "Annelerin gözleri dolarken.",
-    time: "20:05",
-  },
 ] as const;
 
+/** Dense ring card count — visuals still come only from the 7 sources */
 export const ITEM_COUNT = 136;
 
 function shuffleSeeded<T>(arr: T[], seed = 136): T[] {
@@ -150,7 +115,7 @@ function shuffleSeeded<T>(arr: T[], seed = 136): T[] {
 
 export function buildSharedMemories(count = ITEM_COUNT): SharedMemory[] {
   const pool: string[] = [];
-  while (pool.length < count) pool.push(...SOURCES);
+  while (pool.length < count) pool.push(...SHARED_MEMORY_SOURCES);
   const images = shuffleSeeded(pool).slice(0, count);
 
   return images.map((src, i) => {

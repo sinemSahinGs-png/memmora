@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 460" fill="none" role="img" aria-labelledby="leafKeyTitle">
+  <title id="leafKeyTitle">Yaprak NFC anahtarl1k</title>
+  <defs>
+    <linearGradient id="keyLeaf" x1="60" y1="90" x2="260" y2="400" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2F7356"/>
+      <stop offset="45%" stop-color="#1B4A37"/>
+      <stop offset="100%" stop-color="#0D281F"/>
+    </linearGradient>
+    <linearGradient id="keyMetal" x1="140" y1="20" x2="190" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F0DF9A"/>
+      <stop offset="100%" stop-color="#B89137"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ring -->
+  <circle cx="160" cy="42" r="22" stroke="url(#keyMetal)" stroke-width="5" fill="none"/>
+  <circle cx="160" cy="42" r="12" stroke="#D4AF37" stroke-opacity="0.35" stroke-width="2" fill="none"/>
+
+  <!-- short chain -->
+  <path d="M160 64 V96" stroke="url(#keyMetal)" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="160" cy="104" r="5" fill="#C9A84A"/>
+
+  <!-- leaf body -->
+  <path
+    d="M160 112
+       C214 150 268 220 258 312
+       C250 378 208 420 168 438
+       C160 442 152 442 144 438
+       C104 420 58 368 52 298
+       C42 214 98 146 160 112Z"
+    fill="url(#keyLeaf)"
+    stroke="#D4AF37"
+    stroke-opacity="0.28"
+    stroke-width="1.8"
+  />
+
+  <path d="M158 138 C156 220 156 300 160 420" stroke="#C9A84A" stroke-opacity="0.45" stroke-width="1.8"/>
+  <g stroke="#B9973F" stroke-opacity="0.32" stroke-width="1.2">
+    <path d="M158 180 C132 198 118 224 110 250"/>
+    <path d="M158 240 C136 260 128 290 126 318"/>
+    <path d="M160 190 C186 208 202 236 212 266"/>
+    <path d="M160 252 C184 272 194 304 198 332"/>
+  </g>
+
+  <text
+    x="160"
+    y="280"
+    text-anchor="middle"
+    fill="#E8D9A8"
+    fill-opacity="0.55"
+    font-family="ui-sans-serif, system-ui, sans-serif"
+    font-size="10"
+    letter-spacing="0.28em"
+  >MEMOORA</text>
+
+  <circle cx="160" cy="318" r="6" fill="#F1D889" opacity="0.65"/>
+  <circle cx="160" cy="318" r="12" fill="none" stroke="#F1D889" stroke-opacity="0.3"/>
+</svg>

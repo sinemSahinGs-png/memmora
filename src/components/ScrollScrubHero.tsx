@@ -395,9 +395,8 @@ export function ScrollScrubHero({ demoHref = "#demo" }: ScrollScrubHeroProps) {
               <a href={demoHref} className="hero-cta hero-cta--primary">
                 Demo Düğünü Gör
               </a>
-              <a href="#davetiye" className="hero-cta hero-cta--secondary">
-                <span className="hero-cta__play" aria-hidden />
-                Nasıl Çalışır?
+              <a href="/satinal" className="hero-cta hero-cta--secondary">
+                Satın Al
               </a>
             </div>
           </div>
