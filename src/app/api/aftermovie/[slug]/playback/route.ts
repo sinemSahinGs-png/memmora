@@ -9,11 +9,14 @@ import {
   readCoupleAdminSession,
   readSuperAdminSession,
 } from "@/lib/auth/admin-session-cookie";
-import { fetchDriveMediaBuffer } from "@/lib/media-access";
+import { fetchDriveMediaRange, buildMediaStreamHeaders } from "@/lib/media-access";
 
 interface RouteContext {
   params: Promise<{ slug: string }>;
 }
+
+export const runtime = "nodejs";
+export const maxDuration = 60;
 
 async function authorizePlayback(slug: string, coupleId: string) {
   if ((await readSuperAdminSession()) != null) return true;
@@ -76,20 +79,25 @@ export async function GET(req: Request, context: RouteContext) {
     }
 
     if (key) {
-      const { buffer, mimeType } = await fetchDriveMediaBuffer(key);
-      return new NextResponse(new Uint8Array(buffer), {
-        status: 200,
-        headers: {
-          "Content-Type": mimeType.includes("video") ? mimeType : "video/mp4",
-          "Cache-Control": publicOk
-            ? "public, max-age=3600"
-            : "private, no-store",
-          ...(download
-            ? {
-                "Content-Disposition": `attachment; filename="memoora-after-${slug}.mp4"`,
-              }
-            : {}),
-        },
+      const rangeHeader = req.headers.get("range");
+      const result = await fetchDriveMediaRange(key, rangeHeader);
+      const mimeType = result.mimeType.includes("video")
+        ? result.mimeType
+        : "video/mp4";
+
+      return new NextResponse(new Uint8Array(result.body), {
+        status: result.status,
+        headers: buildMediaStreamHeaders({
+          mimeType,
+          size: result.size,
+          status: result.status,
+          contentRange: result.contentRange,
+          cacheControl: publicOk ? "public, max-age=3600" : "private, no-store",
+          contentDisposition: download
+            ? `attachment; filename="memoora-after-${slug}.mp4"`
+            : "inline",
+          bodyLength: result.body.length,
+        }),
       });
     }
 

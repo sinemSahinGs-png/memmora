@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import {
   authorizeContributionMedia,
-  fetchDriveMediaBuffer,
+  buildMediaStreamHeaders,
+  fetchDriveMediaRange,
 } from "@/lib/media-access";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function GET(
   request: Request,
@@ -26,15 +28,20 @@ export async function GET(
   }
 
   try {
-    const { buffer, mimeType } = await fetchDriveMediaBuffer(fileId);
-    const contentType = auth.media.mime_type?.trim() || mimeType;
+    const rangeHeader = request.headers.get("range");
+    const result = await fetchDriveMediaRange(fileId, rangeHeader);
+    const contentType = auth.media.mime_type?.trim() || result.mimeType;
 
-    return new NextResponse(new Uint8Array(buffer), {
-      headers: {
-        "Content-Type": contentType,
-        "Cache-Control": "private, max-age=3600, stale-while-revalidate=86400",
-        "Content-Disposition": "inline",
-      },
+    return new NextResponse(new Uint8Array(result.body), {
+      status: result.status,
+      headers: buildMediaStreamHeaders({
+        mimeType: contentType,
+        size: result.size,
+        status: result.status,
+        contentRange: result.contentRange,
+        cacheControl: "private, max-age=3600, stale-while-revalidate=86400",
+        bodyLength: result.body.length,
+      }),
     });
   } catch (err) {
     console.error("[media/view]", err);

@@ -112,7 +112,7 @@ export async function fetchDriveMediaBuffer(fileId: string): Promise<{
 
   const meta = await drive.files.get({
     fileId,
-    fields: "mimeType",
+    fields: "mimeType,size",
     ...DRIVE_SHARED_OPTS,
   });
 
@@ -128,4 +128,140 @@ export async function fetchDriveMediaBuffer(fileId: string): Promise<{
     buffer: Buffer.from(response.data as ArrayBuffer),
     mimeType: meta.data.mimeType || "application/octet-stream",
   };
+}
+
+export type DriveMediaRangeResult = {
+  body: Buffer;
+  status: 200 | 206;
+  mimeType: string;
+  size: number;
+  contentRange?: string;
+};
+
+function parseBytesRange(
+  rangeHeader: string | null,
+  size: number,
+): { start: number; end: number } | null {
+  if (!rangeHeader || size <= 0) return null;
+  const match = /^bytes=(\d*)-(\d*)$/i.exec(rangeHeader.trim());
+  if (!match) return null;
+
+  const startRaw = match[1];
+  const endRaw = match[2];
+
+  let start = startRaw === "" ? NaN : Number(startRaw);
+  let end = endRaw === "" ? NaN : Number(endRaw);
+
+  if (Number.isNaN(start) && Number.isNaN(end)) return null;
+
+  // suffix range: bytes=-500
+  if (Number.isNaN(start)) {
+    const suffix = end;
+    if (!Number.isFinite(suffix) || suffix <= 0) return null;
+    start = Math.max(0, size - suffix);
+    end = size - 1;
+  } else {
+    if (!Number.isFinite(start) || start < 0 || start >= size) return null;
+    end = Number.isNaN(end) ? size - 1 : Math.min(end, size - 1);
+    if (end < start) return null;
+  }
+
+  return { start, end };
+}
+
+/**
+ * Fetch Drive media with optional HTTP Range support for mobile Safari video.
+ * Falls back to a sliced full download if Drive rejects partial requests.
+ */
+export async function fetchDriveMediaRange(
+  fileId: string,
+  rangeHeader: string | null,
+): Promise<DriveMediaRangeResult> {
+  const missingEnv = getMissingDriveEnvVars();
+  if (missingEnv.length > 0) {
+    throw new Error("Google Drive yapılandırması eksik.");
+  }
+
+  const drive = getDriveClient();
+  const meta = await drive.files.get({
+    fileId,
+    fields: "mimeType,size",
+    ...DRIVE_SHARED_OPTS,
+  });
+
+  const mimeType = meta.data.mimeType || "application/octet-stream";
+  const size = Number(meta.data.size || 0);
+  const range = parseBytesRange(rangeHeader, size);
+
+  if (!range || size <= 0) {
+    const full = await drive.files.get(
+      { fileId, alt: "media" },
+      { responseType: "arraybuffer" },
+    );
+    const buffer = Buffer.from(full.data as ArrayBuffer);
+    return {
+      body: buffer,
+      status: 200,
+      mimeType,
+      size: size || buffer.length,
+    };
+  }
+
+  const { start, end } = range;
+  const rangeValue = `bytes=${start}-${end}`;
+
+  try {
+    const partial = await drive.files.get(
+      { fileId, alt: "media" },
+      {
+        responseType: "arraybuffer",
+        headers: { Range: rangeValue },
+      },
+    );
+    const body = Buffer.from(partial.data as ArrayBuffer);
+    return {
+      body,
+      status: 206,
+      mimeType,
+      size,
+      contentRange: `bytes ${start}-${start + body.length - 1}/${size}`,
+    };
+  } catch {
+    // Some Drive responses reject Range — download once and slice.
+    const full = await drive.files.get(
+      { fileId, alt: "media" },
+      { responseType: "arraybuffer" },
+    );
+    const buffer = Buffer.from(full.data as ArrayBuffer);
+    const slice = buffer.subarray(start, end + 1);
+    return {
+      body: slice,
+      status: 206,
+      mimeType,
+      size: size || buffer.length,
+      contentRange: `bytes ${start}-${start + slice.length - 1}/${size || buffer.length}`,
+    };
+  }
+}
+
+export function buildMediaStreamHeaders(options: {
+  mimeType: string;
+  size: number;
+  status: 200 | 206;
+  contentRange?: string;
+  cacheControl: string;
+  contentDisposition?: string;
+  bodyLength: number;
+}): HeadersInit {
+  const headers: Record<string, string> = {
+    "Content-Type": options.mimeType,
+    "Accept-Ranges": "bytes",
+    "Content-Length": String(options.bodyLength),
+    "Cache-Control": options.cacheControl,
+    "Content-Disposition": options.contentDisposition ?? "inline",
+  };
+  if (options.status === 206 && options.contentRange) {
+    headers["Content-Range"] = options.contentRange;
+  }
+  return headers;
 }

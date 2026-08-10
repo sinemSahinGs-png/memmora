@@ -180,14 +180,27 @@ export function ScrollScrubHero({ demoHref = "#demo" }: ScrollScrubHeroProps) {
     if (!section || !video) return;
 
     let cancelled = false;
+    const isMobile =
+      typeof window !== "undefined" &&
+      window.matchMedia("(max-width: 768px)").matches;
+
+    // Mobile: metadata first so the hero never waits on a full download.
+    video.preload = isMobile ? "metadata" : "auto";
 
     const markReady = () => {
       if (cancelled || isVideoReadyRef.current) return;
       isVideoReadyRef.current = true;
       video.pause();
       currentTimeRef.current = 0;
-      if (Math.abs(video.currentTime) > SEEK_THRESHOLD) {
-        video.currentTime = 0;
+      if (Number.isFinite(video.duration) && video.duration > 0) {
+        durationRef.current = video.duration;
+      }
+      try {
+        if (Math.abs(video.currentTime) > SEEK_THRESHOLD) {
+          video.currentTime = 0;
+        }
+      } catch {
+        /* iOS can reject seeks before enough data */
       }
       setIsLoading(false);
     };
@@ -195,6 +208,12 @@ export function ScrollScrubHero({ demoHref = "#demo" }: ScrollScrubHeroProps) {
     const onLoadedMetadata = () => {
       if (!Number.isFinite(video.duration) || video.duration <= 0) return;
       durationRef.current = video.duration;
+      // Metadata is enough to leave the loading state on mobile Safari.
+      if (isMobile) markReady();
+    };
+
+    const onCanPlay = () => {
+      markReady();
     };
 
     const onLoadedData = () => {
@@ -202,6 +221,7 @@ export function ScrollScrubHero({ demoHref = "#demo" }: ScrollScrubHeroProps) {
     };
 
     const onError = () => {
+      isVideoReadyRef.current = false;
       setIsLoading(false);
     };
 
@@ -215,106 +235,126 @@ export function ScrollScrubHero({ demoHref = "#demo" }: ScrollScrubHeroProps) {
 
     video.addEventListener("loadedmetadata", onLoadedMetadata);
     video.addEventListener("loadeddata", onLoadedData);
+    video.addEventListener("canplay", onCanPlay);
     video.addEventListener("error", onError);
+
+    // Never leave the phone on an endless spinner.
+    const readyTimeout = window.setTimeout(() => {
+      if (!cancelled) markReady();
+    }, isMobile ? 4500 : 8000);
+
+    try {
+      video.load();
+    } catch {
+      /* ignore */
+    }
 
     if (video.readyState >= 1) onLoadedMetadata();
     if (video.readyState >= 2) onLoadedData();
 
     let scrollTrigger: ScrollTrigger | null = null;
     let scrubTick: (() => void) | null = null;
+    let onResize: (() => void) | null = null;
 
     if (!reduceMotion) {
       const sticky = stickyRef.current;
-      if (!sticky) return;
+      if (sticky) {
+        gsap.registerPlugin(ScrollTrigger);
 
-      gsap.registerPlugin(ScrollTrigger);
+        scrollTrigger = ScrollTrigger.create({
+          trigger: section,
+          start: "top top",
+          end: "bottom bottom",
+          pin: sticky,
+          pinSpacing: false,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            targetProgressRef.current = self.progress;
+          },
+        });
 
-      scrollTrigger = ScrollTrigger.create({
-        trigger: section,
-        start: "top top",
-        end: "bottom bottom",
-        pin: sticky,
-        pinSpacing: false,
-        anticipatePin: 1,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          targetProgressRef.current = self.progress;
-        },
-      });
+        scrubTick = () => {
+          if (!isVideoReadyRef.current) return;
 
-      scrubTick = () => {
-        if (!isVideoReadyRef.current) return;
+          const duration = durationRef.current;
+          if (!duration) return;
 
-        const duration = durationRef.current;
-        if (!duration) return;
+          const progress = targetProgressRef.current;
+          const target = progress * duration;
+          const lerpFactor = progress > 0.9 ? 0.28 : LERP_FACTOR;
 
-        const progress = targetProgressRef.current;
-        const target = progress * duration;
-        const lerpFactor = progress > 0.9 ? 0.28 : LERP_FACTOR;
+          currentTimeRef.current +=
+            (target - currentTimeRef.current) * lerpFactor;
 
-        currentTimeRef.current += (target - currentTimeRef.current) * lerpFactor;
+          if (progress >= 0.995) {
+            currentTimeRef.current = target;
+          }
 
-        if (progress >= 0.995) {
-          currentTimeRef.current = target;
-        }
+          if (!video.paused) video.pause();
 
-        if (!video.paused) video.pause();
+          if (
+            Math.abs(video.currentTime - currentTimeRef.current) >
+            SEEK_THRESHOLD
+          ) {
+            try {
+              video.currentTime = currentTimeRef.current;
+            } catch {
+              /* ignore seek errors while buffering */
+            }
+          }
 
-        if (Math.abs(video.currentTime - currentTimeRef.current) > SEEK_THRESHOLD) {
-          video.currentTime = currentTimeRef.current;
-        }
+          if (hintRef.current) {
+            hintRef.current.style.opacity = String(
+              Math.max(0, 0.55 - progress * 2.2),
+            );
+          }
 
-        if (hintRef.current) {
-          hintRef.current.style.opacity = String(Math.max(0, 0.55 - progress * 2.2));
-        }
+          if (copyRef.current) {
+            const copyOpacity =
+              progress > 0.88 ? Math.max(0, 1 - (progress - 0.88) / 0.12) : 1;
+            const lift = progress > 0.88 ? (progress - 0.88) * -5 : 0;
+            copyRef.current.style.opacity = String(copyOpacity);
+            copyRef.current.style.transform = `translate3d(0, ${lift}vh, 0)`;
+          }
+        };
 
-        if (copyRef.current) {
-          const copyOpacity =
-            progress > 0.88 ? Math.max(0, 1 - (progress - 0.88) / 0.12) : 1;
-          const lift = progress > 0.88 ? (progress - 0.88) * -5 : 0;
-          copyRef.current.style.opacity = String(copyOpacity);
-          copyRef.current.style.transform = `translate3d(0, ${lift}vh, 0)`;
-        }
-      };
+        gsap.ticker.add(scrubTick);
 
-      gsap.ticker.add(scrubTick);
-
-      const onResize = () => {
+        onResize = () => {
+          ScrollTrigger.refresh();
+        };
+        window.addEventListener("resize", onResize);
         ScrollTrigger.refresh();
-      };
-
-      window.addEventListener("resize", onResize);
-      ScrollTrigger.refresh();
-
-      return () => {
-        cancelled = true;
-        window.removeEventListener("resize", onResize);
-        if (scrubTick) gsap.ticker.remove(scrubTick);
-        scrollTrigger?.kill();
-        video.removeEventListener("loadedmetadata", onLoadedMetadata);
-        video.removeEventListener("loadeddata", onLoadedData);
-        video.removeEventListener("error", onError);
-      };
-    }
-
-    const showStaticFrame = () => {
-      if (cancelled) return;
-      video.pause();
-      video.currentTime = 0;
-      setIsLoading(false);
-    };
-
-    if (video.readyState >= 2) {
-      showStaticFrame();
+      }
     } else {
-      video.addEventListener("loadeddata", showStaticFrame, { once: true });
+      const showStaticFrame = () => {
+        if (cancelled) return;
+        video.pause();
+        try {
+          video.currentTime = 0;
+        } catch {
+          /* ignore */
+        }
+        setIsLoading(false);
+      };
+
+      if (video.readyState >= 2) {
+        showStaticFrame();
+      } else {
+        video.addEventListener("loadeddata", showStaticFrame, { once: true });
+      }
     }
 
     return () => {
       cancelled = true;
+      window.clearTimeout(readyTimeout);
+      if (onResize) window.removeEventListener("resize", onResize);
+      if (scrubTick) gsap.ticker.remove(scrubTick);
+      scrollTrigger?.kill();
       video.removeEventListener("loadedmetadata", onLoadedMetadata);
       video.removeEventListener("loadeddata", onLoadedData);
-      video.removeEventListener("loadeddata", showStaticFrame);
+      video.removeEventListener("canplay", onCanPlay);
       video.removeEventListener("error", onError);
     };
   }, [reduceMotion]);
@@ -337,10 +377,10 @@ export function ScrollScrubHero({ demoHref = "#demo" }: ScrollScrubHeroProps) {
         <video
           ref={videoRef}
           className={`hero-scrub__video${isLoading ? "" : " hero-scrub__video--ready"}`}
-          src={SCRUB_VIDEO_SRC}
+          src={`${SCRUB_VIDEO_SRC}?v=2`}
           muted
           playsInline
-          preload="auto"
+          preload="metadata"
           aria-hidden
         />
 
