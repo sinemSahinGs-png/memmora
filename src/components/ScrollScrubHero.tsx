@@ -7,7 +7,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 const SCRUB_VIDEO_SRC = "/memoora-hero-scrub.mp4";
 const LERP_FACTOR = 0.12;
 const SEEK_THRESHOLD = 0.015;
-const MOBILE_HEIGHT = "180svh";
+const MOBILE_HEIGHT = "145svh";
 const DESKTOP_HEIGHT = "380vh";
 
 interface ScrollScrubHeroProps {
@@ -382,21 +382,20 @@ export function ScrollScrubHero({ demoHref = "#demo" }: ScrollScrubHeroProps) {
             </h1>
 
             <p ref={bodyRef} className="hero-scrub__supporting">
-              Ücretsiz dijital davetiye, interaktif düğün quiz’i ve size özel NFC
-              hatıra ürünleri tek bir deneyimde.
+              Davetiyeden anılara, tüm düğün deneyiminiz tek yerde.
             </p>
 
             <p ref={noteRef} className="hero-scrub__micro">
               <span className="hero-scrub__micro-dot" aria-hidden />
-              Dijital davetiye ücretsiz dahil.
+              Dijital davetiye dahil.
             </p>
 
             <div ref={actionsRef} className="hero-scrub__actions">
-              <a href={demoHref} className="hero-cta hero-cta--primary">
-                Demo Düğünü Gör
-              </a>
-              <a href="/satinal" className="hero-cta hero-cta--secondary">
+              <a href="/satinal" className="hero-cta hero-cta--primary">
                 Satın Al
+              </a>
+              <a href={demoHref} className="hero-cta hero-cta--secondary">
+                Demo Düğünü Gör
               </a>
             </div>
           </div>

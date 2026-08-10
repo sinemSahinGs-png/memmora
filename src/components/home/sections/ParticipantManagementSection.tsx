@@ -34,9 +34,9 @@ export function ParticipantManagementSection() {
       const attend = section.querySelector("[data-stat='attend']");
       const newRow = section.querySelector(".cine-admin__row--new");
 
-      gsap.set(panel, { opacity: 1, y: 0 });
-      gsap.set(rows, { opacity: 1, y: 0 });
-      if (newRow) gsap.set(newRow, { opacity: 1, y: 0 });
+      gsap.set(panel, { opacity: 0.55, y: 22 });
+      gsap.set(rows, { opacity: 0.3, y: 16 });
+      if (newRow) gsap.set(newRow, { opacity: 0, y: 20 });
 
       if (!panel) return;
 
@@ -53,7 +53,11 @@ export function ParticipantManagementSection() {
         });
 
         tl.to(panel, { opacity: 1, y: 0, ease: "none", duration: 1 });
-        tl.to(rows.slice(0, 4), { opacity: 1, y: 0, stagger: 0.08, ease: "none" }, 0.15);
+        tl.to(
+          rows.slice(0, 4),
+          { opacity: 1, y: 0, stagger: 0.08, ease: "none" },
+          0.15,
+        );
         if (attend) {
           tl.add(() => {
             attend.textContent = "143";
@@ -81,14 +85,13 @@ export function ParticipantManagementSection() {
         <div className="cine-admin__copy">
           <p className="cine-eyebrow">DAVETLİ YÖNETİMİ</p>
           <SplitTextReveal as="h2" className="cine-heading">
-            Kim geliyor,
+            Kim geliyor?
             <br />
-            tek ekrandan takip et.
+            Tek ekrandan takip et.
           </SplitTextReveal>
           <ScrollReveal>
             <p className="cine-body">
-              Katılacak, katılamayacak ve henüz yanıt vermeyen davetlileri anlık
-              olarak görün.
+              Katılım durumlarını ve misafir sayısını anlık olarak görün.
             </p>
           </ScrollReveal>
         </div>

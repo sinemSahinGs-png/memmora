@@ -82,30 +82,21 @@ export function DigitalInvitationSection() {
       ref={sectionRef}
       id="davetiye"
       className="cine-invite"
-      aria-label="Ücretsiz dijital davetiye"
+      aria-label="Dijital davetiye"
     >
       <div className="cine-container cine-invite__grid">
         <div className="cine-invite__copy">
-          <p className="cine-eyebrow">ÜCRETSİZ DİJİTAL DAVETİYE</p>
-          <span className="cine-free-badge">Ücretsiz Dahil</span>
           <SplitTextReveal as="h2" className="cine-heading">
             Davetiyen hazır.
             <br />
-            Üstelik ücretsiz.
+            Üstelik Pakete Dahil.
           </SplitTextReveal>
           <ScrollReveal>
             <p className="cine-body">
-              Size özel dijital davetiyeyi tek bağlantıyla paylaşın.
-              Misafirleriniz katılım durumlarını bildirsin; siz de tüm
-              yanıtları admin panelinizden takip edin.
+              Düğününüze özel dijital davetiyenizi paylaşın, misafirlerinizi tek
+              yerden karşılayın.
             </p>
           </ScrollReveal>
-          <ul className="cine-feature-tags">
-            <li>Ücretsiz davetiye</li>
-            <li>Mobil uyumlu</li>
-            <li>Tek bağlantıyla paylaşım</li>
-            <li>Katılım bildirimi</li>
-          </ul>
         </div>
 
         <div className="cine-invite__phone visual-stage">

@@ -12,28 +12,18 @@ gsap.registerPlugin(ScrollTrigger);
 const STEPS = [
   {
     id: "01",
-    title: "Davet Et",
-    body: "Ücretsiz dijital davetiyeni paylaş.",
+    title: "Davet et.",
+    body: "Size özel dijital davetiyenizi paylaşın.",
   },
   {
     id: "02",
-    title: "Katılımı Takip Et",
-    body: "Davetli yanıtlarını admin panelinden gör.",
+    title: "Anları topla.",
+    body: "Fotoğraflar, videolar ve mesajlar tek yerde buluşsun.",
   },
   {
     id: "03",
-    title: "Birlikte Eğlen",
-    body: "Düğün quiz’iyle misafirlerini deneyime kat.",
-  },
-  {
-    id: "04",
-    title: "Anıları Topla",
-    body: "Mesajları, fotoğrafları ve videoları bir araya getir.",
-  },
-  {
-    id: "05",
-    title: "Hatıranı Taşı",
-    body: "Kişiye özel NFC ürünleriyle o günü yanında taşı.",
+    title: "Hatıranı yaşat.",
+    body: "O gece, düğünden sonra da sizinle kalsın.",
   },
 ] as const;
 
@@ -93,14 +83,13 @@ export function CompleteExperienceSection() {
       ref={sectionRef}
       id="deneyim-ozet"
       className="cine-complete"
-      aria-label="Tek bir düğün deneyimi"
+      aria-label="Davetiyeden hatıraya"
     >
       <div className="cine-container">
-        <p className="cine-eyebrow">TEK BİR DÜĞÜN DENEYİMİ</p>
         <SplitTextReveal as="h2" className="cine-heading">
           Davetiyeden
           <br />
-          hatıraya.
+          Hatıraya.
         </SplitTextReveal>
 
         <ol className="cine-complete__list">

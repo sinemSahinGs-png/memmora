@@ -29,15 +29,14 @@ const BASE: AmbientState = {
 
 const STATES: { selector: string; vars: AmbientState }[] = [
   {
-    selector: "#manifesto",
+    selector: "#deneyim-ozet",
     vars: {
       ...BASE,
-      "--ambient-primary-x": "38%",
-      "--ambient-primary-y": "48%",
+      "--ambient-primary-x": "48%",
+      "--ambient-primary-y": "50%",
       "--ambient-primary-alpha": 0.18,
-      "--ambient-gold-alpha": 0.015,
-      "--ambient-haze-alpha": 0.4,
-      "--ambient-vignette-strength": 0.6,
+      "--ambient-gold-alpha": 0.035,
+      "--ambient-vignette-strength": 0.54,
     },
   },
   {
@@ -56,6 +55,32 @@ const STATES: { selector: string; vars: AmbientState }[] = [
       "--ambient-gold-alpha": 0.04,
       "--ambient-haze-alpha": 0.52,
       "--ambient-vignette-strength": 0.58,
+    },
+  },
+  {
+    selector: "#manifesto",
+    vars: {
+      ...BASE,
+      "--ambient-primary-x": "38%",
+      "--ambient-primary-y": "48%",
+      "--ambient-primary-alpha": 0.18,
+      "--ambient-gold-alpha": 0.015,
+      "--ambient-haze-alpha": 0.4,
+      "--ambient-vignette-strength": 0.6,
+    },
+  },
+  {
+    selector: "#nfc-urunler",
+    vars: {
+      ...BASE,
+      "--ambient-primary-x": "48%",
+      "--ambient-primary-y": "40%",
+      "--ambient-primary-alpha": 0.2,
+      "--ambient-gold-x": "52%",
+      "--ambient-gold-y": "36%",
+      "--ambient-gold-alpha": 0.03,
+      "--ambient-haze-alpha": 0.48,
+      "--ambient-vignette-strength": 0.44,
     },
   },
   {
@@ -105,28 +130,17 @@ const STATES: { selector: string; vars: AmbientState }[] = [
     },
   },
   {
-    selector: "#nfc-urunler",
+    selector: "#memoora-after",
     vars: {
       ...BASE,
-      "--ambient-primary-x": "48%",
-      "--ambient-primary-y": "40%",
-      "--ambient-primary-alpha": 0.22,
-      "--ambient-gold-x": "52%",
-      "--ambient-gold-y": "36%",
-      "--ambient-gold-alpha": 0.075,
-      "--ambient-haze-alpha": 0.48,
-      "--ambient-vignette-strength": 0.44,
-    },
-  },
-  {
-    selector: "#deneyim-ozet",
-    vars: {
-      ...BASE,
-      "--ambient-primary-x": "48%",
-      "--ambient-primary-y": "50%",
-      "--ambient-primary-alpha": 0.18,
-      "--ambient-gold-alpha": 0.035,
-      "--ambient-vignette-strength": 0.54,
+      "--ambient-primary-x": "50%",
+      "--ambient-primary-y": "42%",
+      "--ambient-primary-alpha": 0.16,
+      "--ambient-gold-x": "48%",
+      "--ambient-gold-y": "38%",
+      "--ambient-gold-alpha": 0.05,
+      "--ambient-haze-alpha": 0.44,
+      "--ambient-vignette-strength": 0.58,
     },
   },
   {

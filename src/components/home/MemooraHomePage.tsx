@@ -6,6 +6,7 @@ import { CompleteExperienceSection } from "@/components/home/sections/CompleteEx
 import { DigitalInvitationSection } from "@/components/home/sections/DigitalInvitationSection";
 import { HomeCtaSection } from "@/components/home/sections/HomeCtaSection";
 import { InteractiveQuizSection } from "@/components/home/sections/InteractiveQuizSection";
+import { MemooraAfterSection } from "@/components/home/sections/MemooraAfterSection";
 import { ParticipantManagementSection } from "@/components/home/sections/ParticipantManagementSection";
 import { PersonalizedProductsSection } from "@/components/home/sections/PersonalizedProductsSection";
 import { StoryManifestoSection } from "@/components/home/sections/StoryManifestoSection";
@@ -30,13 +31,14 @@ export function MemooraHomePage({ demos }: MemooraHomePageProps) {
           <PostHeroAmbientBackground />
 
           <div className="post-hero-content">
-            <StoryManifestoSection />
+            <CompleteExperienceSection />
             <SharedMemoriesArchiveSection demoHref={demoHref} />
+            <StoryManifestoSection />
+            <PersonalizedProductsSection />
             <DigitalInvitationSection />
             <ParticipantManagementSection />
             <InteractiveQuizSection />
-            <PersonalizedProductsSection />
-            <CompleteExperienceSection />
+            <MemooraAfterSection />
             <HomeCtaSection demoHref={demoHref} />
             <PremiumHomeFooter />
           </div>

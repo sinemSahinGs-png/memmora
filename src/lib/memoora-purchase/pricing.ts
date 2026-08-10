@@ -4,7 +4,7 @@
  */
 
 export const MAGNET_UNIT_PRICE = 55;
-export const KEYCHAIN_UNIT_PRICE = 35;
+export const KEYCHAIN_UNIT_PRICE = 45;
 
 /** Turkey standard KDV rate */
 export const VAT_RATE = 0.2;

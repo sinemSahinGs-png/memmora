@@ -520,16 +520,16 @@ export function SharedMemoriesArchiveSection({
     >
       <div className="shared-memories__shell">
         <header className="shared-memories__intro">
-          <p className="cine-eyebrow shared-memories__eyebrow">
-            HERKESİN GÖZÜNDEN
-          </p>
+          <h2 className="cine-heading">
+            Onların Gözünden
+            <br />
+            Sizin Geceniz.
+          </h2>
           <p className="shared-memories__lead">
-            Misafirlerin çektiği fotoğraf ve videolar tek bir yerde buluşur.
-            Herkes kendi anısını paylaşır; çiftin o gece göremediği anlar bile
-            birlikte yaşamaya devam eder.
+            Misafirlerinizin yakaladığı anlar, tek bir ortak hafızada buluşur.
           </p>
           <p className="shared-memories__secondary">
-            Her fotoğraf, o gecenin başka bir anını taşır.
+            Her fotoğraf, gecenin başka bir yüzü.
           </p>
         </header>
 
@@ -550,12 +550,6 @@ export function SharedMemoriesArchiveSection({
               </div>
               <p className="shared-memories__preview-byline">{byline}</p>
               <div className="shared-memories__actions">
-                <Link
-                  href={browseHref}
-                  className="shared-memories__cta shared-memories__cta--secondary"
-                >
-                  Paylaşılan Anıları Gör <i>+</i>
-                </Link>
                 <Link
                   href={browseHref}
                   className="shared-memories__cta shared-memories__cta--primary"

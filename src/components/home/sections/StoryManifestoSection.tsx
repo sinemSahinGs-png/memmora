@@ -164,12 +164,11 @@ export function StoryManifestoSection() {
             className="floating-memory-bubble--manifesto"
           />
         </div>
-        <p className="cine-eyebrow cine-manifesto__label">Bir Anıdan Fazlası</p>
         <div ref={textRef} className="cine-manifesto__text">
           <span className="cine-manifesto__block">
             Bazı anılar
             <br />
-            bir gün yaşanır.
+            bir güne sığmaz.
           </span>
           <span className="cine-manifesto__block">
             Bazılarıysa

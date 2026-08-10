@@ -7,6 +7,8 @@ export const PRODUCT_ASSETS = {
     alt: "Kişiye özel yaprak NFC magnet",
     label: "Kişiye Özel Magnet",
     shortLabel: "Magnet",
+    width: 1024,
+    height: 1536,
   },
   keychain: {
     id: "keychain" as const,
@@ -14,6 +16,8 @@ export const PRODUCT_ASSETS = {
     alt: "Yaprak NFC anahtarlık",
     label: "Anahtarlık",
     shortLabel: "Anahtarlık",
+    width: 1024,
+    height: 1536,
   },
 } as const;
 

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -12,6 +11,19 @@ import { ScrollReveal } from "@/components/animation/ScrollReveal";
 
 gsap.registerPlugin(ScrollTrigger);
 
+const PRODUCTS = [
+  {
+    ...PRODUCT_ASSETS.magnet,
+    name: "NFC Yaprak",
+    blurb: "Tek dokunuşla düğün hikâyenize açılır.",
+  },
+  {
+    ...PRODUCT_ASSETS.keychain,
+    name: "NFC Anahtarlık",
+    blurb: "Hatıranızı her gün yanınızda taşıyın.",
+  },
+] as const;
+
 export function PersonalizedProductsSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const reduced = useReducedMotion();
@@ -21,41 +33,23 @@ export function PersonalizedProductsSection() {
       const section = sectionRef.current;
       if (!section || reduced) return;
 
-      const magnet = section.querySelector(".cine-product__magnet");
-      const notes = gsap.utils.toArray<HTMLElement>(
-        section.querySelectorAll(".cine-product__annotations p"),
+      const items = gsap.utils.toArray<HTMLElement>(
+        section.querySelectorAll(".cine-product__item"),
       );
-      const keychain = section.querySelector(".cine-product__keychain");
-      const pulse = section.querySelector(".cine-product__nfc-glow");
+      gsap.set(items, { opacity: 0.72, y: 28 });
 
-      gsap.set(magnet, { opacity: 0.95, y: 16, rotate: -2 });
-      gsap.set(notes, { opacity: 0.35, x: -8 });
-      gsap.set(keychain, { opacity: 0.9, y: 18 });
-      if (pulse) gsap.set(pulse, { opacity: 0.4, scale: 0.9 });
-
-      const tl = gsap.timeline({
+      gsap.to(items, {
+        opacity: 1,
+        y: 0,
+        stagger: 0.14,
+        duration: 0.85,
+        ease: "power2.out",
         scrollTrigger: {
           trigger: section,
           start: "top 78%",
-          end: "bottom 30%",
-          scrub: 0.55,
-          onLeave: () => {
-            gsap.set([magnet, keychain, ...notes], {
-              opacity: 1,
-              x: 0,
-              y: 0,
-              clearProps: "filter",
-            });
-          },
+          once: true,
         },
       });
-
-      tl.to(magnet, { opacity: 1, y: 0, rotate: 3, ease: "none", duration: 1.2 });
-      tl.to(notes[0], { opacity: 1, x: 0, duration: 0.5 }, 0.35);
-      tl.to(notes[1], { opacity: 1, x: 0, duration: 0.5 }, 0.65);
-      tl.to(pulse, { opacity: 0.85, scale: 1.08, duration: 0.45 }, 0.75);
-      tl.to(notes[2], { opacity: 1, x: 0, duration: 0.5 }, 0.95);
-      tl.to(keychain, { opacity: 1, y: 0, duration: 0.7 }, 1.1);
     },
     [reduced],
     sectionRef,
@@ -66,88 +60,40 @@ export function PersonalizedProductsSection() {
       ref={sectionRef}
       id="nfc-urunler"
       className="cine-product"
-      aria-label="Kişiye özel NFC hatıraları"
+      aria-label="Fiziksel hatıralar"
     >
       <div className="cine-container cine-product__intro">
-        <p className="cine-eyebrow">KİŞİYE ÖZEL NFC HATIRASI</p>
+        <p className="cine-eyebrow">FİZİKSEL HATIRALAR</p>
         <SplitTextReveal as="h2" className="cine-heading">
-          Misafirlerine özel.
+          Anıların
           <br />
-          Sadece size ait.
+          Fiziksel Hali.
         </SplitTextReveal>
         <ScrollReveal>
           <p className="cine-body">
-            Gelin ve damadın baş harfleriyle kişiselleştirilen yaprak magnet ve
-            NFC anahtarlık, Memoora deneyimini kalıcı bir düğün hatırasına
-            dönüştürür.
+            Düğününüzden size kalan küçük, kişisel hatıralar.
           </p>
-          <p className="cine-product__strong">Her çift için özel üretilir.</p>
         </ScrollReveal>
-        <ul className="cine-feature-tags">
-          <li>Baş harfler</li>
-          <li>Düğün tarihi</li>
-          <li>Renk seçimi</li>
-          <li>NFC bağlantısı</li>
-        </ul>
       </div>
 
-      <div className="cine-product__showcase">
-        <article className="cine-product__magnet-wrap">
-          <div className="cine-product__magnet">
-            <div className="cine-product__leaf-stage">
-              <Image
-                src={PRODUCT_ASSETS.magnet.src}
-                alt={PRODUCT_ASSETS.magnet.alt}
-                width={460}
-                height={613}
-                className="cine-product__leaf-img"
+      <div className="cine-product__grid">
+        {PRODUCTS.map((product) => (
+          <article key={product.id} className="cine-product__item">
+            <div className="cine-product__visual">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`${product.src}?v=3`}
+                alt={product.alt}
+                width={product.width}
+                height={product.height}
+                decoding="async"
               />
-              <span className="cine-product__nfc-glow" aria-hidden />
+              <span className="cine-product__nfc-tag">NFC</span>
             </div>
-          </div>
-
-          <div className="cine-product__annotations">
-            <p>
-              <span className="cine-product__annotation-line" aria-hidden />
-              Kişiye Özel Baş Harfler
-            </p>
-            <p>
-              <span className="cine-product__annotation-line" aria-hidden />
-              NFC Etkileşim Noktası
-            </p>
-            <p>
-              <span className="cine-product__annotation-line" aria-hidden />
-              Düğüne Özel Üretim
-            </p>
-          </div>
-
-          <div className="cine-product__copy">
-            <h3>Kişiye Özel Yaprak Magnet</h3>
-            <p>
-              Çiftin baş harfleri ve düğün tarihiyle her düğüne özel olarak
-              hazırlanır.
-            </p>
-          </div>
-        </article>
-
-        <article className="cine-product__keychain">
-          <div className="cine-product__keychain-visual">
-            <Image
-              src={PRODUCT_ASSETS.keychain.src}
-              alt={PRODUCT_ASSETS.keychain.alt}
-              width={420}
-              height={604}
-              className="cine-product__keychain-img"
-            />
-          </div>
-          <div className="cine-product__copy">
-            <h3>Yaprak NFC Anahtarlık</h3>
-            <p>
-              Çiftin özel Memoora sayfasını telefona tek dokunuşla açan yaprak
-              biçimli düğün hatırası.
-            </p>
-          </div>
-        </article>
+            <h3>{product.name}</h3>
+            <p>{product.blurb}</p>
+          </article>
+        ))}
       </div>
     </section>
   );

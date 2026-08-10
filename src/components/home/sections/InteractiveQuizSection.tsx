@@ -231,7 +231,7 @@ export function InteractiveQuizSection() {
       aria-label="İnteraktif düğün quiz"
     >
       <div className="cine-container cine-quiz__intro">
-        <p className="cine-eyebrow">İNTERAKTİF DÜĞÜN AKTİVİTESİ</p>
+        <p className="cine-eyebrow">DÜĞÜN QUIZ</p>
         <SplitTextReveal as="h2" className="cine-heading">
           Çifti en iyi
           <br />
@@ -239,11 +239,8 @@ export function InteractiveQuizSection() {
         </SplitTextReveal>
         <ScrollReveal>
           <p className="cine-body">
-            Düğüne özel sorular ve canlı sıralamayla misafirlerinizi gecenin
-            aktif bir parçası yapın.
-          </p>
-          <p className="cine-body cine-quiz__support">
-            Cevabını seç, puanını kazan ve sıralamadaki yerini gör.
+            Misafirler cevaplasın. Sizi en iyi tanıyan gecenin sonunda belli
+            olsun.
           </p>
         </ScrollReveal>
       </div>

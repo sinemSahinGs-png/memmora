@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMemo, useState } from "react";
@@ -254,13 +253,14 @@ export function PurchaseWizard() {
                         >
                           <div className="purchase-product__visual">
                             <div className="purchase-product__orbit">
-                              <Image
-                                src={visual.src}
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={`${visual.src}?v=3`}
                                 alt={visual.alt}
-                                width={type === "magnet" ? 180 : 140}
-                                height={type === "magnet" ? 240 : 200}
-                                priority
+                                width={visual.width}
+                                height={visual.height}
                                 className="purchase-product__img"
+                                decoding="async"
                               />
                             </div>
                           </div>

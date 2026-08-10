@@ -5,11 +5,11 @@ export interface HomeDemoCouple {
 
 /** Homepage hero copy */
 export const HOME_HERO = {
-  headlineLines: ["Düğün", "anılarını", "yaşat."] as const,
+  headlineLines: ["Bir Gece Yaşanır.", "Hikâyesi Kalır."] as const,
   body:
-    "Memoora ile ücretsiz dijital davetiye, NFC ürünler ve interaktif düğün deneyimi tek bir yerde.",
-  primaryCta: "Demo Düğünü Gör",
-  secondaryCta: "Satın Al",
+    "Davetiyenizden misafirlerinizin bıraktığı anılara, NFC hatıralardan düğün sonrası filminize kadar tüm hikâyeniz tek bir yerde.",
+  primaryCta: "Satın Al",
+  secondaryCta: "Demo Düğünü Gör",
 } as const;
 
 export const HOME_FEATURE_STRIP = [
