@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ orderId: string }> }
+  { params }: { params: Promise<{ orderId: string }> },
 ) {
   try {
     const { orderId } = await params;
@@ -25,10 +25,9 @@ export async function GET(
           slug,
           display_title,
           names,
-          admin_pin,
           drive_folder_url
         )
-      `
+      `,
       )
       .eq("id", orderId)
       .maybeSingle();
@@ -42,7 +41,6 @@ export async function GET(
       slug: string;
       display_title: string | null;
       names: string;
-      admin_pin: string | null;
       drive_folder_url: string | null;
     };
 
@@ -57,13 +55,12 @@ export async function GET(
       displayTitle: couple.display_title ?? couple.names,
       publicUrl: urls.publicUrl,
       adminUrl: urls.adminUrl,
-      adminPin: couple.admin_pin,
       driveFolderUrl: couple.drive_folder_url,
     });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Hata." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

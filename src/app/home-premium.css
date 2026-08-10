@@ -2095,19 +2095,20 @@ body:has(.memoora-home-premium) {
   }
 }
 
-/* Personalized products — compact family */
+/* Personalized products — content-bbox frames (PNG transparent pad trimmed from layout) */
 .cine-product {
-  padding: clamp(72px, 11svh, 110px) 0;
+  padding: clamp(56px, 8svh, 88px) 0;
   background: transparent;
+  overflow: clip;
 }
 
 .cine-product__intro {
-  margin-bottom: 36px;
+  margin-bottom: 24px;
 }
 
 .cine-product__grid {
   display: grid;
-  gap: 34px;
+  gap: 64px;
   width: min(94vw, 980px);
   margin-inline: auto;
   padding-inline: var(--hp-pad);
@@ -2115,36 +2116,273 @@ body:has(.memoora-home-premium) {
 
 .cine-product__item {
   display: grid;
-  gap: 14px;
+  gap: 30px;
   justify-items: center;
   text-align: center;
 }
 
 .cine-product__visual {
   position: relative;
-  width: min(86vw, 400px);
+  width: fit-content;
+  max-width: 100%;
   display: grid;
   place-items: center;
+  isolation: isolate;
+  overflow: visible;
 }
 
-.cine-product__visual img {
-  width: 100%;
+.cine-product__atmos {
+  position: absolute;
+  inset: -6% -18% -4%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      120% 80% at 18% 22%,
+      rgba(34, 58, 42, 0.14) 0%,
+      transparent 52%
+    ),
+    radial-gradient(
+      90% 70% at 82% 68%,
+      rgba(18, 32, 24, 0.16) 0%,
+      transparent 58%
+    ),
+    radial-gradient(
+      70% 55% at 46% 48%,
+      rgba(8, 14, 11, 0.08) 0%,
+      transparent 70%
+    );
+  filter: blur(32px);
+  opacity: 0.75;
+}
+
+.cine-product__dust {
+  position: absolute;
+  inset: 6% 8%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.08;
+  background-image:
+    radial-gradient(1px 1px at 12% 28%, rgba(246, 222, 150, 0.55), transparent),
+    radial-gradient(1px 1px at 68% 18%, rgba(245, 241, 232, 0.35), transparent),
+    radial-gradient(1.2px 1.2px at 42% 72%, rgba(212, 175, 55, 0.4), transparent),
+    radial-gradient(1px 1px at 78% 58%, rgba(245, 241, 232, 0.28), transparent),
+    radial-gradient(1px 1px at 28% 52%, rgba(180, 190, 150, 0.25), transparent);
+  mix-blend-mode: soft-light;
+}
+
+.cine-product__parallax {
+  position: relative;
+  z-index: 1;
+  width: fit-content;
+  display: grid;
+  place-items: center;
+  will-change: transform;
+}
+
+.cine-product__hover {
+  width: fit-content;
+  display: grid;
+  place-items: center;
+  transform-origin: center 55%;
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cine-product__figure {
+  position: relative;
+  width: fit-content;
+  display: grid;
+  place-items: center;
+  will-change: transform, filter, opacity;
+}
+
+/* Layout box = opaque product bbox only (not full PNG canvas) */
+.cine-product__asset {
+  position: relative;
+  z-index: 1;
+  width: var(--product-visible-w);
+  aspect-ratio: var(--product-content-ar);
+  overflow: visible;
+}
+
+.cine-product__contact-shadow {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: -2%;
+  height: 12%;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    55% 70% at 50% 50%,
+    rgba(0, 0, 0, 0.48) 0%,
+    rgba(0, 0, 0, 0.16) 42%,
+    transparent 78%
+  );
+  filter: blur(14px);
+  opacity: 0.72;
+  transform: scaleY(0.65);
+}
+
+.cine-product__img {
+  position: absolute;
+  z-index: 1;
+  /* Map full PNG canvas so opaque bbox fills .cine-product__asset */
+  width: calc(100% * var(--png-w) / var(--content-w));
   height: auto;
+  max-width: none;
+  left: calc(-100% * var(--content-x) / var(--content-w));
+  top: calc(-100% * var(--content-y) / var(--content-h));
   display: block;
-  filter: drop-shadow(0 22px 36px rgba(0, 0, 0, 0.38));
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: none;
 }
 
+.cine-product__sweep {
+  position: absolute;
+  inset: -8% -18%;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    122deg,
+    transparent 42%,
+    rgba(255, 248, 230, 0.08) 48%,
+    rgba(246, 222, 150, 0.22) 50.5%,
+    rgba(255, 248, 230, 0.08) 53%,
+    transparent 60%
+  );
+  mix-blend-mode: soft-light;
+  filter: blur(6px);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+/*
+  Magnet PNG content bbox: 451×670 inside 1024×1536 (~44% width).
+  Visible target ~205px on 390vw ≈ 52% screen.
+*/
+.cine-product__item--magnet {
+  --png-w: 1024;
+  --png-h: 1536;
+  --content-x: 288;
+  --content-y: 345;
+  --content-w: 451;
+  --content-h: 670;
+  --product-content-ar: 451 / 670;
+  --product-visible-w: clamp(210px, 54vw, 228px);
+}
+
+.cine-product__item--magnet .cine-product__img {
+  filter:
+    saturate(0.93)
+    contrast(1.08)
+    brightness(0.97)
+    drop-shadow(0 18px 26px rgba(0, 0, 0, 0.46))
+    drop-shadow(0 4px 10px rgba(12, 20, 14, 0.28));
+}
+
+.cine-product__item--magnet .cine-product__contact-shadow {
+  left: 8%;
+  right: 8%;
+  bottom: -1%;
+  opacity: 0.8;
+}
+
+.cine-product__item--magnet .cine-product__atmos {
+  background:
+    radial-gradient(
+      130% 85% at 12% 30%,
+      rgba(42, 62, 40, 0.14) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      100% 75% at 78% 70%,
+      rgba(28, 40, 24, 0.12) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      80% 60% at 50% 45%,
+      rgba(90, 70, 35, 0.04) 0%,
+      transparent 68%
+    );
+}
+
+/*
+  Keychain PNG content bbox: 289×928 inside 1024×1536 (~28% width).
+  Visible target ~185px on 390vw.
+*/
+.cine-product__item--keychain {
+  --png-w: 1024;
+  --png-h: 1536;
+  --content-x: 370;
+  --content-y: 229;
+  --content-w: 289;
+  --content-h: 928;
+  --product-content-ar: 289 / 928;
+  --product-visible-w: clamp(180px, 49vw, 205px);
+}
+
+.cine-product__item--keychain .cine-product__img {
+  filter:
+    saturate(0.86)
+    contrast(1.09)
+    brightness(0.95)
+    hue-rotate(-5deg)
+    drop-shadow(0 20px 28px rgba(0, 0, 0, 0.44))
+    drop-shadow(0 2px 10px rgba(70, 62, 36, 0.2));
+}
+
+.cine-product__item--keychain .cine-product__contact-shadow {
+  left: 18%;
+  right: 18%;
+  bottom: 2%;
+  height: 8%;
+  opacity: 0.5;
+  filter: blur(16px);
+}
+
+.cine-product__item--keychain .cine-product__atmos {
+  background:
+    radial-gradient(
+      115% 78% at 70% 18%,
+      rgba(48, 58, 40, 0.12) 0%,
+      transparent 52%
+    ),
+    radial-gradient(
+      95% 70% at 30% 75%,
+      rgba(10, 18, 14, 0.14) 0%,
+      transparent 58%
+    );
+}
+
+/* Badge anchored to visible product asset */
 .cine-product__nfc-tag {
   position: absolute;
-  top: 10px;
-  right: 8px;
-  padding: 5px 8px;
-  border: 1px solid rgba(212, 175, 55, 0.35);
-  background: rgba(5, 12, 9, 0.55);
-  font-size: 0.62rem;
-  letter-spacing: 0.18em;
+  top: 10%;
+  right: -16px;
+  z-index: 3;
+  padding: 4px 7px;
+  border: 1px solid rgba(212, 175, 55, 0.32);
+  background: rgba(5, 12, 9, 0.48);
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(241, 216, 137, 0.92);
+  color: rgba(241, 216, 137, 0.78);
+  pointer-events: none;
+}
+
+.cine-product__item--keychain .cine-product__nfc-tag {
+  top: 5%;
+  right: -14px;
+}
+
+.cine-product__copy {
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+  max-width: 300px;
+  width: 100%;
 }
 
 .cine-product__item h3 {
@@ -2157,7 +2395,7 @@ body:has(.memoora-home-premium) {
 
 .cine-product__item p {
   margin: 0;
-  max-width: 28ch;
+  max-width: 300px;
   font-size: clamp(0.98rem, 3.5vw, 1.05rem);
   line-height: 1.6;
   color: rgba(245, 241, 232, 0.82);
@@ -2166,16 +2404,51 @@ body:has(.memoora-home-premium) {
 @media (min-width: 900px) {
   .cine-product__grid {
     grid-template-columns: 1fr 1fr;
-    gap: 44px;
-    align-items: end;
+    gap: 48px;
+    align-items: start;
   }
 
-  .cine-product__item:first-child .cine-product__visual {
-    width: min(46vw, 470px);
+  .cine-product__item {
+    gap: 32px;
   }
 
-  .cine-product__item:last-child .cine-product__visual {
-    width: min(40vw, 380px);
+  .cine-product__item--magnet {
+    --product-visible-w: clamp(250px, 23vw, 310px);
+  }
+
+  .cine-product__item--keychain {
+    --product-visible-w: clamp(220px, 19vw, 270px);
+  }
+
+  .cine-product__copy {
+    max-width: 320px;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .cine-product__item--magnet:hover .cine-product__hover {
+    transform: translateY(-5px) scale(1.02) rotate(-0.8deg);
+  }
+
+  .cine-product__item--keychain:hover .cine-product__hover {
+    transform: translateY(-5px) scale(1.02) rotate(0.9deg);
+  }
+
+  .cine-product__item:hover .cine-product__contact-shadow {
+    opacity: 0.95;
+    filter: blur(16px);
+    transform: scaleY(0.75) scaleX(1.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cine-product__sweep {
+    display: none;
+  }
+
+  .cine-product__figure,
+  .cine-product__parallax {
+    will-change: auto;
   }
 }
 
@@ -2721,10 +2994,15 @@ body:has(.memoora-home-premium) {
 }
 
 .shared-memories__preview-frame > img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
   width: 100%;
   height: 100%;
+  max-width: none;
   display: block;
   object-fit: cover;
+  transform: translate(-50%, -50%);
 }
 
 .shared-memories__preview-byline {
@@ -2820,10 +3098,15 @@ body:has(.memoora-home-premium) {
 }
 
 .shared-memory-ring__card img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
   width: 100%;
   height: 100%;
+  max-width: none;
   object-fit: cover;
   display: block;
+  transform: translate(-50%, -50%);
   filter: saturate(0.92) brightness(0.99);
 }
 
@@ -2921,6 +3204,13 @@ body:has(.memoora-home-premium) {
   color: rgba(245, 241, 232, 0.5);
 }
 
+.shared-memories__center-byline {
+  margin: 1em 0 0;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  color: rgba(245, 241, 232, 0.62);
+}
+
 .shared-memories__center-project-title {
   margin: 0.35em 0 0;
   font-family: var(--font-serif);
@@ -2945,6 +3235,7 @@ body:has(.memoora-home-premium) {
 }
 
 .shared-memories__reduced-card {
+  position: relative;
   margin: 0;
   aspect-ratio: 4 / 5;
   overflow: hidden;
@@ -2953,9 +3244,14 @@ body:has(.memoora-home-premium) {
 }
 
 .shared-memories__reduced-card img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
   width: 100%;
   height: 100%;
+  max-width: none;
   object-fit: cover;
+  transform: translate(-50%, -50%);
 }
 
 @media (max-width: 768px) {

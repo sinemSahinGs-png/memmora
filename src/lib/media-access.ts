@@ -2,6 +2,10 @@ import { getDriveClient, getMissingDriveEnvVars } from "@/lib/google/drive";
 import { DRIVE_SHARED_OPTS } from "@/lib/google/drive-shared-options";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import type { DbContributionMedia } from "@/lib/supabase/database.types";
+import {
+  readCoupleAdminSession,
+  readSuperAdminSession,
+} from "@/lib/auth/admin-session-cookie";
 
 export type AuthorizedMedia = DbContributionMedia & {
   guest_name: string;
@@ -17,7 +21,6 @@ export function getMediaDownloadFilename(media: DbContributionMedia): string {
 export async function authorizeContributionMedia(
   mediaId: string,
   coupleSlug: string | null,
-  options?: { superAdmin?: boolean }
 ): Promise<{ media: AuthorizedMedia } | { error: string; status: number }> {
   if (!mediaId.trim()) {
     return { error: "Medya bulunamadı.", status: 400 };
@@ -36,7 +39,7 @@ export async function authorizeContributionMedia(
           created_at,
           is_visible
         )
-      `
+      `,
     )
     .eq("id", mediaId)
     .is("deleted_at", null)
@@ -57,7 +60,8 @@ export async function authorizeContributionMedia(
     return { error: "Medya bulunamadı.", status: 404 };
   }
 
-  if (!options?.superAdmin) {
+  const superOk = (await readSuperAdminSession()) != null;
+  if (!superOk) {
     const slug = coupleSlug?.trim();
     if (!slug) {
       return { error: "Erişim reddedildi.", status: 403 };
@@ -65,13 +69,17 @@ export async function authorizeContributionMedia(
 
     const { data: couple, error: coupleError } = await supabase
       .from("couples")
-      .select("id")
+      .select("id, slug")
       .eq("slug", slug)
       .maybeSingle();
 
     if (coupleError || !couple || couple.id !== contribution.couple_id) {
       return { error: "Medya bulunamadı.", status: 404 };
     }
+
+    // Public gallery access by slug is allowed for visible media.
+    // Couple-admin cookie is optional for private overrides later.
+    void (await readCoupleAdminSession());
   }
 
   const driveFileId = row.drive_file_id?.trim();
@@ -113,7 +121,7 @@ export async function fetchDriveMediaBuffer(fileId: string): Promise<{
       fileId,
       alt: "media",
     },
-    { responseType: "arraybuffer" }
+    { responseType: "arraybuffer" },
   );
 
   return {

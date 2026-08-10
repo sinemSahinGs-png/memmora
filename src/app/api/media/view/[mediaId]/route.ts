@@ -8,16 +8,13 @@ export const runtime = "nodejs";
 
 export async function GET(
   request: Request,
-  context: { params: Promise<{ mediaId: string }> }
+  context: { params: Promise<{ mediaId: string }> },
 ) {
   const { mediaId } = await context.params;
   const { searchParams } = new URL(request.url);
   const coupleSlug = searchParams.get("coupleSlug");
-  const superAdmin = searchParams.get("superAdmin") === "1";
 
-  const auth = await authorizeContributionMedia(mediaId, coupleSlug, {
-    superAdmin,
-  });
+  const auth = await authorizeContributionMedia(mediaId, coupleSlug);
 
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });

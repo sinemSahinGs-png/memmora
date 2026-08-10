@@ -796,6 +796,54 @@ export interface Database {
         };
         Relationships: [];
       };
+      homepage_shared_memories: {
+        Row: {
+          id: string;
+          storage_path: string;
+          public_url: string;
+          guest_name: string;
+          category: string;
+          title: string;
+          sort_order: number;
+          frame_zoom: number;
+          frame_pan_x: number;
+          frame_pan_y: number;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          storage_path: string;
+          public_url: string;
+          guest_name?: string;
+          category?: string;
+          title?: string;
+          sort_order?: number;
+          frame_zoom?: number;
+          frame_pan_x?: number;
+          frame_pan_y?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          storage_path?: string;
+          public_url?: string;
+          guest_name?: string;
+          category?: string;
+          title?: string;
+          sort_order?: number;
+          frame_zoom?: number;
+          frame_pan_x?: number;
+          frame_pan_y?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -810,6 +858,8 @@ export type DbContribution = Database["public"]["Tables"]["contributions"]["Row"
 export type DbContributionMedia =
   Database["public"]["Tables"]["contribution_media"]["Row"];
 export type DbRsvpResponse = Database["public"]["Tables"]["rsvp_responses"]["Row"];
+export type DbHomepageSharedMemory =
+  Database["public"]["Tables"]["homepage_shared_memories"]["Row"];
 
 export interface ContributionWithMedia extends DbContribution {
   contribution_media: DbContributionMedia[];

@@ -11,14 +11,16 @@ import { ParticipantManagementSection } from "@/components/home/sections/Partici
 import { PersonalizedProductsSection } from "@/components/home/sections/PersonalizedProductsSection";
 import { StoryManifestoSection } from "@/components/home/sections/StoryManifestoSection";
 import { SharedMemoriesArchiveSection } from "@/components/home/SharedMemoriesArchiveSection";
+import type { SharedMemorySource } from "@/components/home/shared-memories-data";
 import { getDemoHref, type HomeDemoCouple } from "@/lib/home-content";
 import "@/app/home-premium.css";
 
 interface MemooraHomePageProps {
   demos: HomeDemoCouple[];
+  memorySources?: SharedMemorySource[];
 }
 
-export function MemooraHomePage({ demos }: MemooraHomePageProps) {
+export function MemooraHomePage({ demos, memorySources }: MemooraHomePageProps) {
   const demoHref = getDemoHref(demos);
 
   return (
@@ -32,13 +34,16 @@ export function MemooraHomePage({ demos }: MemooraHomePageProps) {
 
           <div className="post-hero-content">
             <CompleteExperienceSection />
-            <SharedMemoriesArchiveSection demoHref={demoHref} />
+            <SharedMemoriesArchiveSection
+              demoHref={demoHref}
+              sources={memorySources}
+            />
             <StoryManifestoSection />
             <PersonalizedProductsSection />
             <DigitalInvitationSection />
             <ParticipantManagementSection />
             <InteractiveQuizSection />
-            <MemooraAfterSection />
+            <MemooraAfterSection sources={memorySources} />
             <HomeCtaSection demoHref={demoHref} />
             <PremiumHomeFooter />
           </div>

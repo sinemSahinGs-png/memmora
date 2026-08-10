@@ -13,6 +13,8 @@ interface AdminPinLoginScreenProps {
   pinError: boolean;
   onPinChange: (value: string) => void;
   onSubmit: (e: React.FormEvent) => void;
+  /** Super-admin password (letters/symbols). Default: numeric couple PIN. */
+  mode?: "pin" | "password";
 }
 
 export function AdminPinLoginScreen({
@@ -23,10 +25,12 @@ export function AdminPinLoginScreen({
   pinError,
   onPinChange,
   onSubmit,
+  mode = "pin",
 }: AdminPinLoginScreenProps) {
   const inputId = useId();
   const [showPin, setShowPin] = useState(false);
   const [inputReady, setInputReady] = useState(false);
+  const isPassword = mode === "password";
 
   useEffect(() => {
     setInputReady(true);
@@ -56,19 +60,23 @@ export function AdminPinLoginScreen({
         >
           <div className="admin-pin-screen__field">
             <label htmlFor={inputId} className="admin-pin-screen__label">
-              PIN
+              {isPassword ? "Şifre" : "PIN"}
             </label>
             <div className="admin-pin-screen__input-wrap">
               <input
                 id={inputId}
                 type={showPin ? "text" : "password"}
-                inputMode="numeric"
+                inputMode={isPassword ? "text" : "numeric"}
                 value={pin}
                 onChange={(e) => onPinChange(e.target.value)}
-                placeholder="PIN girin"
-                aria-label="PIN"
-                className="memory-input memory-input-compact admin-pin-screen__input text-center tracking-[0.45em]"
-                autoComplete="one-time-code"
+                placeholder={isPassword ? "Şifrenizi girin" : "PIN girin"}
+                aria-label={isPassword ? "Şifre" : "PIN"}
+                className={
+                  isPassword
+                    ? "memory-input memory-input-compact admin-pin-screen__input admin-pin-screen__input--password"
+                    : "memory-input memory-input-compact admin-pin-screen__input text-center tracking-[0.45em]"
+                }
+                autoComplete={isPassword ? "current-password" : "one-time-code"}
                 autoCorrect="off"
                 autoCapitalize="off"
                 spellCheck={false}
@@ -77,13 +85,13 @@ export function AdminPinLoginScreen({
                 onClick={enableInput}
                 data-lpignore="true"
                 data-1p-ignore="true"
-                name="memoora-admin-pin"
+                name={isPassword ? "memoora-super-admin-password" : "memoora-admin-pin"}
               />
               <button
                 type="button"
                 className="admin-pin-screen__toggle"
                 onClick={() => setShowPin((value) => !value)}
-                aria-label={showPin ? "PIN'i gizle" : "PIN'i göster"}
+                aria-label={showPin ? "Gizle" : "Göster"}
                 aria-pressed={showPin}
               >
                 {showPin ? <IconEyeOff /> : <IconEye />}
@@ -92,7 +100,9 @@ export function AdminPinLoginScreen({
           </div>
           {pinError ? (
             <p className="admin-pin-screen__error" role="alert">
-              Yanlış PIN — tekrar deneyin
+              {isPassword
+                ? "Yanlış şifre — tekrar deneyin"
+                : "Yanlış PIN — tekrar deneyin"}
             </p>
           ) : null}
           <GoldButton

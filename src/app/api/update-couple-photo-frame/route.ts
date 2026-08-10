@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireCoupleAdminOrSuperAdmin } from "@/lib/auth/admin-session-cookie";
 import { clampFrameCrop } from "@/lib/memories-frame-crop";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { isPlaceholderCoupleId } from "@/lib/supabase/couples";
@@ -25,6 +26,11 @@ export async function POST(request: Request) {
         { error: "photoId ve coupleSlug gerekli." },
         { status: 400 }
       );
+    }
+
+    const auth = await requireCoupleAdminOrSuperAdmin(coupleSlug);
+    if (!auth.ok) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const supabase = createServiceRoleClient();

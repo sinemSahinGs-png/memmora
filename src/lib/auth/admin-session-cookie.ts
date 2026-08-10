@@ -152,6 +152,21 @@ export async function requireCoupleAdminForSlug(slug: string): Promise<
   return { ok: true, session };
 }
 
+/** Couple admin for slug, or any valid super-admin session. */
+export async function requireCoupleAdminOrSuperAdmin(slug: string): Promise<
+  | { ok: true; kind: "couple"; session: CoupleSessionPayload }
+  | { ok: true; kind: "super"; session: SuperSessionPayload }
+  | { ok: false; status: number; error: string }
+> {
+  const superSession = await readSuperAdminSession();
+  if (superSession) {
+    return { ok: true, kind: "super", session: superSession };
+  }
+  const couple = await requireCoupleAdminForSlug(slug);
+  if (!couple.ok) return couple;
+  return { ok: true, kind: "couple", session: couple.session };
+}
+
 export async function requireSuperAdmin(): Promise<
   | { ok: true; session: SuperSessionPayload }
   | { ok: false; status: number; error: string }

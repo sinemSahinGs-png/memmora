@@ -18,23 +18,20 @@ export interface GalleryArchiveMedia extends DbContributionMedia {
 
 export async function authorizeCoupleGalleryAccess(
   coupleSlug: string | null,
-  options?: { superAdmin?: boolean }
 ): Promise<
   { couple: { id: string; slug: string } } | { error: string; status: number }
 > {
   const slug = coupleSlug?.trim();
-  if (!options?.superAdmin && !slug) {
+  if (!slug) {
     return { error: "Erişim reddedildi.", status: 403 };
   }
 
   const supabase = createServiceRoleClient();
-  let query = supabase.from("couples").select("id, slug");
-
-  if (slug) {
-    query = query.eq("slug", slug);
-  }
-
-  const { data: couple, error } = await query.maybeSingle();
+  const { data: couple, error } = await supabase
+    .from("couples")
+    .select("id, slug")
+    .eq("slug", slug)
+    .maybeSingle();
 
   if (error || !couple) {
     return { error: "Çift bulunamadı.", status: 404 };

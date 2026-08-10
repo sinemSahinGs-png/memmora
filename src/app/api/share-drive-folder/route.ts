@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireCoupleAdminOrSuperAdmin } from "@/lib/auth/admin-session-cookie";
 import {
   getMissingDriveEnvVars,
   getOrCreateCoupleFolder,
@@ -13,14 +14,12 @@ import { createServiceRoleClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
-// TODO: Add rate limiting and admin auth before production.
-
 function collectShareEmails(
   couple: {
     bride_email: string | null;
     groom_email: string | null;
   },
-  overrides?: { brideEmail?: string; groomEmail?: string }
+  overrides?: { brideEmail?: string; groomEmail?: string },
 ): {
   validEmails: string[];
   invalidEmails: ShareDriveInvalidEmail[];
@@ -64,7 +63,7 @@ export async function POST(request: Request) {
     console.error("[share-drive-folder] missing env:", missingEnv.join(", "));
     return NextResponse.json(
       { error: "Google Drive yapılandırması eksik." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
@@ -80,12 +79,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "coupleSlug gerekli." }, { status: 400 });
     }
 
+    const auth = await requireCoupleAdminOrSuperAdmin(coupleSlug);
+    if (!auth.ok) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+
     const supabase = createServiceRoleClient();
 
     const { data: couple, error } = await supabase
       .from("couples")
       .select(
-        "id, slug, bride_email, groom_email, drive_folder_id, drive_folder_url"
+        "id, slug, bride_email, groom_email, drive_folder_id, drive_folder_url",
       )
       .eq("slug", coupleSlug)
       .maybeSingle();
@@ -115,7 +119,7 @@ export async function POST(request: Request) {
 
     const folder = await getOrCreateCoupleFolder(
       couple.slug,
-      couple.drive_folder_id
+      couple.drive_folder_id,
     );
 
     assertCoupleFolderNotParent(folder.folderId);
@@ -137,7 +141,7 @@ export async function POST(request: Request) {
 
     const { sharedWith, alreadyShared } = await shareDriveFolderWithEmails(
       folder.folderId,
-      validEmails
+      validEmails,
     );
 
     return NextResponse.json({
@@ -160,7 +164,7 @@ export async function POST(request: Request) {
             ? error.message
             : "Drive paylaşımı sırasında hata oluştu.",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

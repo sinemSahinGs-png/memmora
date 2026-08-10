@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireCoupleAdminOrSuperAdmin } from "@/lib/auth/admin-session-cookie";
 import {
   getMissingDriveEnvVars,
   getOrCreateCoupleFolder,
@@ -45,6 +46,11 @@ export async function POST(request: Request) {
 
     if (!coupleSlug) {
       return NextResponse.json({ error: "coupleSlug gerekli." }, { status: 400 });
+    }
+
+    const auth = await requireCoupleAdminOrSuperAdmin(coupleSlug);
+    if (!auth.ok) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     if (!isAllowedGalleryImageMimeType(file.type)) {

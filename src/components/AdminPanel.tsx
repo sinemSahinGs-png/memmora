@@ -25,11 +25,7 @@ import { AdminPremiumMessageRow } from "./admin/premium/AdminPremiumMessageRow";
 import { AdminPremiumTabPanel } from "./admin/premium/AdminPremiumTabPanel";
 import type { AdminPremiumTab, AdminSettingsPanel } from "./admin/premium/admin-premium-types";
 import type { Couple, RsvpResponse, RsvpStats } from "@/lib/types";
-import {
-  fetchContributionsWithMedia,
-  hideContribution,
-  permanentlyDeleteContribution,
-} from "@/lib/supabase/contributions";
+import { fetchContributionsWithMedia } from "@/lib/supabase/contributions";
 import { fetchLeafCount } from "@/lib/supabase/couples";
 import {
   fetchQuizQuestionCount,
@@ -65,7 +61,6 @@ import { cn } from "@/lib/utils";
 
 interface AdminPanelProps {
   couple: Couple;
-  coupleAdminPin?: string | null;
 }
 
 const FILTERS: { id: AdminContributionFilter; label: string }[] = [
@@ -76,7 +71,6 @@ const FILTERS: { id: AdminContributionFilter; label: string }[] = [
 
 export function AdminPanel({
   couple: initialCouple,
-  coupleAdminPin,
 }: AdminPanelProps) {
   const [couple, setCouple] = useState(initialCouple);
   const [tab, setTab] = useState<AdminPremiumTab>("leaves");
@@ -111,8 +105,6 @@ export function AdminPanel({
   const [toast, setToast] = useState<string | null>(null);
   const galleryHeroRef = useRef<HTMLElement>(null);
 
-  const fallbackPin = process.env.NEXT_PUBLIC_ADMIN_PIN ?? "0606";
-  const adminPin = coupleAdminPin?.trim() || fallbackPin;
   const displayTitle = getCoupleDisplayTitle(couple);
   const publicUrl = buildCouplePublicUrl(couple.slug);
   const quizPublicUrl = buildCoupleQuizUrl(couple.slug);
@@ -248,7 +240,7 @@ export function AdminPanel({
 
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pin !== adminPin) {
+    if (!pin.trim()) {
       setPinError(true);
       return;
     }
@@ -256,6 +248,7 @@ export function AdminPanel({
       const res = await fetch(`/api/couples/${couple.slug}/admin/session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ pin }),
       });
       if (!res.ok) {
@@ -276,7 +269,16 @@ export function AdminPanel({
     setActionLoading(true);
     setActionTargetId(pendingActionId);
     try {
-      await hideContribution(pendingActionId);
+      const res = await fetch(
+        `/api/couples/${couple.slug}/contributions/${pendingActionId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ action: "hide" }),
+        },
+      );
+      if (!res.ok) throw new Error("hide failed");
       setPendingActionId(null);
       await loadData();
       showToast("Mesaj gizlendi");
@@ -293,7 +295,14 @@ export function AdminPanel({
     setActionLoading(true);
     setActionTargetId(pendingActionId);
     try {
-      await permanentlyDeleteContribution(pendingActionId);
+      const res = await fetch(
+        `/api/couples/${couple.slug}/contributions/${pendingActionId}`,
+        {
+          method: "DELETE",
+          credentials: "same-origin",
+        },
+      );
+      if (!res.ok) throw new Error("delete failed");
       setPendingActionId(null);
       await loadData();
       showToast("Mesaj silindi");

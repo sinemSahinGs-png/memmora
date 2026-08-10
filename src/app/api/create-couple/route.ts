@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireSuperAdmin } from "@/lib/auth/admin-session-cookie";
 import {
   buildCoupleDisplayTitle,
   generateAdminPin,
@@ -85,6 +86,14 @@ async function slugTaken(slug: string): Promise<boolean> {
 
 export async function POST(request: Request) {
   try {
+    const auth = await requireSuperAdmin();
+    if (!auth.ok) {
+      return NextResponse.json(
+        { success: false, error: auth.error },
+        { status: auth.status },
+      );
+    }
+
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()) {
       return NextResponse.json(
         { success: false, error: "Sunucu yapılandırması eksik." },

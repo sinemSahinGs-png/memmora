@@ -6,14 +6,12 @@ import { useSearchParams } from "next/navigation";
 import { GoldButton } from "@/components/GoldButton";
 import { GlassCard } from "@/components/GlassCard";
 import { resolveCoupleUrls } from "@/lib/site-url";
-import type { CreateCoupleResponse } from "@/lib/types";
 
 interface SuccessData {
   orderId: string;
   slug: string;
   publicUrl: string;
   adminUrl: string;
-  adminPin: string;
   driveFolderUrl: string | null;
   packageType: string;
 }
@@ -21,7 +19,6 @@ interface SuccessData {
 function toSuccessData(input: {
   orderId: string;
   slug: string;
-  adminPin: string;
   driveFolderUrl: string | null;
   packageType: string;
 }): SuccessData {
@@ -39,18 +36,24 @@ export function OrderSuccessView() {
     const cached = sessionStorage.getItem("memoora_order_success");
     if (cached) {
       try {
-        const parsed = JSON.parse(cached) as CreateCoupleResponse;
-        setData(
-          toSuccessData({
-            orderId: parsed.orderId,
-            slug: parsed.slug,
-            adminPin: parsed.adminPin,
-            driveFolderUrl: parsed.driveFolderUrl,
-            packageType: parsed.packageType,
-          })
-        );
-        setLoading(false);
-        return;
+        const parsed = JSON.parse(cached) as {
+          orderId?: string;
+          slug?: string;
+          driveFolderUrl?: string | null;
+          packageType?: string;
+        };
+        if (parsed.orderId && parsed.slug && parsed.packageType) {
+          setData(
+            toSuccessData({
+              orderId: parsed.orderId,
+              slug: parsed.slug,
+              driveFolderUrl: parsed.driveFolderUrl ?? null,
+              packageType: parsed.packageType,
+            }),
+          );
+          setLoading(false);
+          return;
+        }
       } catch {
         /* fall through */
       }
@@ -69,10 +72,9 @@ export function OrderSuccessView() {
           toSuccessData({
             orderId: json.orderId,
             slug: json.slug,
-            adminPin: json.adminPin,
             driveFolderUrl: json.driveFolderUrl,
             packageType: json.packageType,
-          })
+          }),
         );
       })
       .finally(() => setLoading(false));
@@ -98,7 +100,6 @@ export function OrderSuccessView() {
   const rows = [
     { label: "Site linki", value: data.publicUrl, href: data.publicUrl },
     { label: "Admin panel", value: data.adminUrl, href: data.adminUrl },
-    { label: "Admin PIN", value: data.adminPin },
     { label: "Slug", value: data.slug },
     { label: "Paket", value: data.packageType },
     ...(data.driveFolderUrl
@@ -115,7 +116,8 @@ export function OrderSuccessView() {
         Tebrikler, Memoora düğün siteniz hazır.
       </h1>
       <p className="mt-2 text-sm text-white/45">
-        Bu bilgileri güvenli bir yere kaydedin. Anılarınız kalıcı olarak saklanır.
+        Admin PIN sipariş onay e-postasında iletilir. Site ve admin linklerini
+        güvenli bir yere kaydedin.
       </p>
 
       <dl className="order-success-list">

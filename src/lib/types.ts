@@ -193,6 +193,10 @@ export interface CoupleListItem {
   rsvpGuestCount?: number;
   rsvpResponseCount?: number;
   invitationEnabled?: boolean;
+  /** Only via authenticated super-admin API */
+  adminPin?: string;
+  brideEmail?: string;
+  groomEmail?: string;
 }
 
 export interface RsvpResponse {

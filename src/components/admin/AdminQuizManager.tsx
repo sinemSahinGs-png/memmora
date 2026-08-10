@@ -7,7 +7,6 @@ import { AdminConfirmModal } from "./AdminConfirmModal";
 import { QuizQuestionForm } from "./QuizQuestionForm";
 import type { Couple } from "@/lib/types";
 import { coupleToSettingsInput } from "@/lib/couple-utils";
-import { updateCoupleSettings } from "@/lib/supabase/couples";
 import {
   type QuizQuestion,
   type QuizLeaderEntry,
@@ -77,17 +76,29 @@ export function AdminQuizManager({
     const next = !quizEnabled;
     setSavingToggle(true);
     setError(null);
-    const result = await updateCoupleSettings(couple.id, {
-      ...coupleToSettingsInput(couple),
-      quizEnabled: next,
-    });
-    setSavingToggle(false);
-    if (result.success) {
+    try {
+      const res = await fetch(`/api/couples/${couple.slug}/settings`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          ...coupleToSettingsInput(couple),
+          quizEnabled: next,
+          adminPin: "",
+        }),
+      });
+      const json = (await res.json()) as { couple?: Couple; error?: string };
+      setSavingToggle(false);
+      if (!res.ok || !json.couple) {
+        setError(json.error ?? "Kaydedilemedi.");
+        return;
+      }
       setQuizEnabled(next);
-      onCoupleUpdated(result.couple);
+      onCoupleUpdated(json.couple);
       setMessage(next ? "Quiz aktif edildi." : "Quiz kapatıldı.");
-    } else {
-      setError(result.error);
+    } catch {
+      setSavingToggle(false);
+      setError("Kaydedilemedi.");
     }
   };
 

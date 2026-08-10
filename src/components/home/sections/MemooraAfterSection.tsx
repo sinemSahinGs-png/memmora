@@ -1,39 +1,67 @@
 "use client";
 
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGsapContext } from "@/hooks/useGsapContext";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import {
+  SHARED_MEMORY_SOURCES,
+  type SharedMemorySource,
+} from "@/components/home/shared-memories-data";
+import { getMemoriesFrameCropStyle } from "@/lib/memories-frame-crop";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const FRAMES = [
-  {
-    src: "/images/memoora/shared-memories/01.png",
-    className: "cine-after__photo--a",
-  },
-  {
-    src: "/images/memoora/shared-memories/03.png",
-    className: "cine-after__photo--b",
-  },
-  {
-    src: "/images/memoora/shared-memories/05.png",
-    className: "cine-after__photo--c",
-  },
-  {
-    src: "/images/memoora/shared-memories/02.png",
-    className: "cine-after__photo--d",
-  },
-  {
-    src: "/images/memoora/shared-memories/06.png",
-    className: "cine-after__photo--e",
-  },
+const FRAME_CLASSES = [
+  "cine-after__photo--a",
+  "cine-after__photo--b",
+  "cine-after__photo--c",
+  "cine-after__photo--d",
+  "cine-after__photo--e",
 ] as const;
 
-export function MemooraAfterSection() {
+const FALLBACK_SRCS = [
+  SHARED_MEMORY_SOURCES[0],
+  SHARED_MEMORY_SOURCES[2],
+  SHARED_MEMORY_SOURCES[4],
+  SHARED_MEMORY_SOURCES[1],
+  SHARED_MEMORY_SOURCES[5],
+] as const;
+
+interface MemooraAfterSectionProps {
+  sources?: SharedMemorySource[];
+}
+
+export function MemooraAfterSection({ sources }: MemooraAfterSectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const reduced = useReducedMotion();
+
+  const frames = useMemo(() => {
+    const pool: SharedMemorySource[] =
+      sources && sources.length > 0
+        ? sources
+        : FALLBACK_SRCS.map((src) => ({ src }));
+
+    return FRAME_CLASSES.map((className, i) => {
+      const source = pool[i % pool.length];
+      const hasCrop =
+        source.frameZoom != null ||
+        source.framePanX != null ||
+        source.framePanY != null;
+      return {
+        src: source.src,
+        className,
+        cropStyle: hasCrop
+          ? getMemoriesFrameCropStyle({
+              zoom: source.frameZoom ?? 1,
+              panX: source.framePanX ?? 0,
+              panY: source.framePanY ?? 0,
+            })
+          : undefined,
+      };
+    });
+  }, [sources]);
 
   useGsapContext(
     () => {
@@ -128,7 +156,6 @@ export function MemooraAfterSection() {
           1.35,
         );
 
-      // Slow converge + subtle parallax while in view
       gsap
         .timeline({
           scrollTrigger: {
@@ -165,13 +192,14 @@ export function MemooraAfterSection() {
       <div className="cine-after__grain" aria-hidden />
 
       <div className="cine-after__constellation" aria-hidden>
-        {FRAMES.map((frame) => (
+        {frames.map((frame) => (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            key={frame.src}
+            key={`${frame.className}-${frame.src}`}
             src={frame.src}
             alt=""
             className={`cine-after__photo ${frame.className}`}
+            style={frame.cropStyle}
           />
         ))}
       </div>

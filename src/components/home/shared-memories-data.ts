@@ -7,10 +7,13 @@ export type SharedMemory = {
   caption?: string;
   time?: string;
   objectPosition?: string;
+  frameZoom?: number;
+  framePanX?: number;
+  framePanY?: number;
 };
 
 /**
- * Only these 7 real photos are used.
+ * Only these 7 real photos are used as static fallback.
  * The ring still looks dense by repeating them across many cards.
  */
 export const SHARED_MEMORY_SOURCES = [
@@ -96,7 +99,7 @@ const PROJECTS = [
   },
 ] as const;
 
-/** Dense ring card count — visuals still come only from the 7 sources */
+/** Dense ring card count — visuals still come from the source pool */
 export const ITEM_COUNT = 136;
 
 function shuffleSeeded<T>(arr: T[], seed = 136): T[] {
@@ -113,21 +116,42 @@ function shuffleSeeded<T>(arr: T[], seed = 136): T[] {
   return a;
 }
 
-export function buildSharedMemories(count = ITEM_COUNT): SharedMemory[] {
-  const pool: string[] = [];
-  while (pool.length < count) pool.push(...SHARED_MEMORY_SOURCES);
-  const images = shuffleSeeded(pool).slice(0, count);
+export type SharedMemorySource = {
+  src: string;
+  guestName?: string;
+  category?: string;
+  title?: string;
+  frameZoom?: number;
+  framePanX?: number;
+  framePanY?: number;
+};
 
-  return images.map((src, i) => {
+export function buildSharedMemories(
+  count = ITEM_COUNT,
+  sources?: SharedMemorySource[],
+): SharedMemory[] {
+  const poolSources: SharedMemorySource[] =
+    sources && sources.length > 0
+      ? sources
+      : SHARED_MEMORY_SOURCES.map((src) => ({ src }));
+
+  const pool: SharedMemorySource[] = [];
+  while (pool.length < count) pool.push(...poolSources);
+  const picked = shuffleSeeded(pool).slice(0, count);
+
+  return picked.map((source, i) => {
     const project = PROJECTS[i % PROJECTS.length];
     return {
       id: `memory-${i}`,
-      src,
-      guestName: project.guestName,
-      category: project.category,
-      title: project.title,
+      src: source.src,
+      guestName: source.guestName?.trim() || project.guestName,
+      category: source.category?.trim() || project.category,
+      title: source.title?.trim() || project.title,
       caption: project.caption,
       time: project.time,
+      frameZoom: source.frameZoom,
+      framePanX: source.framePanX,
+      framePanY: source.framePanY,
     };
   });
 }

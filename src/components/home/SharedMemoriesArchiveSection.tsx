@@ -11,9 +11,26 @@ import {
   buildSharedMemories,
   guestByline,
   type SharedMemory,
+  type SharedMemorySource,
 } from "@/components/home/shared-memories-data";
+import { getMemoriesFrameCropStyle } from "@/lib/memories-frame-crop";
 
 gsap.registerPlugin(ScrollTrigger);
+
+function memoryCropStyle(memory: SharedMemory) {
+  if (
+    memory.frameZoom == null &&
+    memory.framePanX == null &&
+    memory.framePanY == null
+  ) {
+    return undefined;
+  }
+  return getMemoriesFrameCropStyle({
+    zoom: memory.frameZoom ?? 1,
+    panX: memory.framePanX ?? 0,
+    panY: memory.framePanY ?? 0,
+  });
+}
 
 const DEG = Math.PI / 180;
 const PERSPECTIVE = 1600;
@@ -37,6 +54,7 @@ const INC = 360 / ITEM_COUNT;
 
 interface SharedMemoriesArchiveSectionProps {
   demoHref: string;
+  sources?: SharedMemorySource[];
 }
 
 type RingCard = {
@@ -49,6 +67,7 @@ type RingCard = {
 
 export function SharedMemoriesArchiveSection({
   demoHref: _demoHref,
+  sources,
 }: SharedMemoriesArchiveSectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const stickyRef = useRef<HTMLDivElement>(null);
@@ -59,7 +78,10 @@ export function SharedMemoriesArchiveSection({
   const hitboxRef = useRef<HTMLDivElement>(null);
 
   const reduced = useReducedMotion();
-  const memories = useMemo(() => buildSharedMemories(ITEM_COUNT), []);
+  const memories = useMemo(
+    () => buildSharedMemories(ITEM_COUNT, sources),
+    [sources],
+  );
   const [active, setActive] = useState<SharedMemory>(memories[0]);
   const [showProject, setShowProject] = useState(false);
 
@@ -505,7 +527,6 @@ export function SharedMemoriesArchiveSection({
   );
 
   const browseHref = "#shared-memories";
-  const heading = active.caption ?? active.title;
   const byline = `${guestByline(active.guestName)}${
     active.time ? ` · ${active.time}` : ""
   }`;
@@ -536,16 +557,13 @@ export function SharedMemoriesArchiveSection({
         <div className="shared-memories__experience">
           <div ref={stickyRef} className="shared-memories__sticky">
             <div ref={previewRef} className="shared-memories__preview">
-              <p className="shared-memories__preview-category">
-                {active.category}
-              </p>
-              <h3 className="shared-memories__preview-heading">{heading}</h3>
               <div className="shared-memories__preview-frame">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   key={active.id}
                   src={active.src}
-                  alt={`${active.guestName} — ${active.category}`}
+                  alt=""
+                  style={memoryCropStyle(active)}
                 />
               </div>
               <p className="shared-memories__preview-byline">{byline}</p>
@@ -568,7 +586,11 @@ export function SharedMemoriesArchiveSection({
                       className="shared-memories__reduced-card"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={memory.src} alt="" />
+                      <img
+                        src={memory.src}
+                        alt=""
+                        style={memoryCropStyle(memory)}
+                      />
                     </figure>
                   ))}
                 </div>
@@ -582,7 +604,11 @@ export function SharedMemoriesArchiveSection({
                       <div key={memory.id} className="shared-memory-ring__item">
                         <div className="shared-memory-ring__card">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={memory.src} alt="" />
+                          <img
+                            src={memory.src}
+                            alt=""
+                            style={memoryCropStyle(memory)}
+                          />
                         </div>
                       </div>
                     ))}
@@ -611,15 +637,11 @@ export function SharedMemoriesArchiveSection({
                         <img
                           key={active.id}
                           src={active.src}
-                          alt={`${active.guestName} — ${active.category}`}
+                          alt=""
+                          style={memoryCropStyle(active)}
                         />
                       </div>
-                      <p className="shared-memories__center-cat">
-                        {active.category}
-                      </p>
-                      <h4 className="shared-memories__center-project-title">
-                        {active.title}
-                      </h4>
+                      <p className="shared-memories__center-byline">{byline}</p>
                     </div>
                   </div>
                 </>

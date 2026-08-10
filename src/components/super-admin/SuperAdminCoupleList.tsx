@@ -1,10 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import type { CoupleListItem } from "@/lib/types";
 import { formatDisplayDate } from "@/lib/mock-data";
 import { provisionCoupleDriveFolder } from "@/lib/provision-drive-folder-client";
 import { buildCoupleAdminUrl, buildCouplePublicUrl } from "@/lib/site-url";
-import { formatManualShareMessage, shareCoupleDriveFolder } from "@/lib/share-drive-folder-client";
+import {
+  formatManualShareMessage,
+  shareCoupleDriveFolder,
+} from "@/lib/share-drive-folder-client";
 import { cn } from "@/lib/utils";
 
 interface SuperAdminCoupleListProps {
@@ -15,8 +19,13 @@ interface SuperAdminCoupleListProps {
   onRefresh?: () => void | Promise<void>;
 }
 
-function copyText(text: string) {
-  void navigator.clipboard.writeText(text);
+async function copyText(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function SuperAdminCoupleList({
@@ -35,54 +44,22 @@ export function SuperAdminCoupleList({
   }
 
   return (
-    <>
-      <div className="super-admin-table-wrap hidden md:block">
-        <table className="super-admin-table">
-          <thead>
-            <tr>
-              <th>Çift</th>
-              <th>Slug</th>
-              <th>Düğün</th>
-              <th>Yaprak</th>
-              <th>Medya</th>
-              <th>Katılım</th>
-              <th>Quiz</th>
-              <th>Durum</th>
-              <th>Aksiyonlar</th>
-            </tr>
-          </thead>
-          <tbody>
-            {couples.map((c) => (
-              <CoupleRowDesktop
-                key={c.id}
-                couple={c}
-                onEdit={onEdit}
-                onToggleStatus={onToggleStatus}
-                onDelete={onDelete}
-                onRefresh={onRefresh}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <ul className="space-y-4 md:hidden">
-        {couples.map((c) => (
-          <CoupleCardMobile
-            key={c.id}
-            couple={c}
-            onEdit={onEdit}
-            onToggleStatus={onToggleStatus}
-            onDelete={onDelete}
-            onRefresh={onRefresh}
-          />
-        ))}
-      </ul>
-    </>
+    <ul className="super-admin-couple-grid">
+      {couples.map((couple) => (
+        <CoupleControlCard
+          key={couple.id}
+          couple={couple}
+          onEdit={onEdit}
+          onToggleStatus={onToggleStatus}
+          onDelete={onDelete}
+          onRefresh={onRefresh}
+        />
+      ))}
+    </ul>
   );
 }
 
-function CoupleRowDesktop({
+function CoupleControlCard({
   couple: c,
   onEdit,
   onToggleStatus,
@@ -97,125 +74,20 @@ function CoupleRowDesktop({
 }) {
   const publicUrl = buildCouplePublicUrl(c.slug);
   const adminUrl = buildCoupleAdminUrl(c.slug);
+  const [pinVisible, setPinVisible] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
 
-  return (
-    <tr>
-      <td>
-        <p className="font-medium text-white/90">{c.displayTitle}</p>
-        <p className="text-[10px] text-white/35">
-          {formatDisplayDate(c.createdAt.split("T")[0])}
-        </p>
-      </td>
-      <td className="text-white/65">{c.slug}</td>
-      <td className="text-white/55">
-        {c.weddingDate ? formatDisplayDate(c.weddingDate) : "—"}
-      </td>
-      <td>{c.leafCount}</td>
-      <td>{c.mediaCount}</td>
-      <td>
-        <span title={`${c.rsvpResponseCount ?? 0} yanıt`}>
-          {c.rsvpGuestCount ?? 0}
-        </span>
-        <span className="text-white/35 text-[10px]">
-          {" "}
-          · {c.invitationEnabled === false ? "Kapalı" : "Açık"}
-        </span>
-      </td>
-      <td>{c.quizEnabled ? "Açık" : "Kapalı"}</td>
-      <td>
-        <StatusBadge status={c.status} />
-      </td>
-      <td>
-        <ActionButtons
-          couple={c}
-          publicUrl={publicUrl}
-          adminUrl={adminUrl}
-          onEdit={onEdit}
-          onToggleStatus={onToggleStatus}
-          onDelete={onDelete}
-          onRefresh={onRefresh}
-        />
-      </td>
-    </tr>
-  );
-}
+  const flash = (key: string) => {
+    setCopied(key);
+    window.setTimeout(() => setCopied(null), 1400);
+  };
 
-function CoupleCardMobile({
-  couple: c,
-  onEdit,
-  onToggleStatus,
-  onDelete,
-  onRefresh,
-}: {
-  couple: CoupleListItem;
-  onEdit: (id: string) => void;
-  onToggleStatus: (id: string, current: CoupleListItem["status"]) => void;
-  onDelete: (id: string, slug: string) => void;
-  onRefresh?: () => void | Promise<void>;
-}) {
-  const publicUrl = buildCouplePublicUrl(c.slug);
-  const adminUrl = buildCoupleAdminUrl(c.slug);
+  const handleCopy = async (key: string, value: string) => {
+    if (!value) return;
+    const ok = await copyText(value);
+    if (ok) flash(key);
+  };
 
-  return (
-    <li className="super-admin-mobile-card">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="font-medium text-white/90">{c.displayTitle}</p>
-          <p className="text-xs text-white/45">{c.slug}</p>
-        </div>
-        <StatusBadge status={c.status} />
-      </div>
-      <div className="mt-3 flex flex-wrap gap-3 text-xs text-white/50">
-        <span>{c.leafCount} yaprak</span>
-        <span>{c.mediaCount} medya</span>
-        <span>{c.rsvpGuestCount ?? 0} katılım</span>
-        <span>{c.quizEnabled ? "Quiz açık" : "Quiz kapalı"}</span>
-      </div>
-      <div className="mt-4">
-        <ActionButtons
-          couple={c}
-          publicUrl={publicUrl}
-          adminUrl={adminUrl}
-          onEdit={onEdit}
-          onToggleStatus={onToggleStatus}
-          onDelete={onDelete}
-          onRefresh={onRefresh}
-        />
-      </div>
-    </li>
-  );
-}
-
-function StatusBadge({ status }: { status: CoupleListItem["status"] }) {
-  return (
-    <span
-      className={cn(
-        "super-admin-status",
-        status === "active" ? "super-admin-status--active" : "super-admin-status--passive"
-      )}
-    >
-      {status === "active" ? "Aktif" : "Pasif"}
-    </span>
-  );
-}
-
-function ActionButtons({
-  couple: c,
-  publicUrl,
-  adminUrl,
-  onEdit,
-  onToggleStatus,
-  onDelete,
-  onRefresh,
-}: {
-  couple: CoupleListItem;
-  publicUrl: string;
-  adminUrl: string;
-  onEdit: (id: string) => void;
-  onToggleStatus: (id: string, current: CoupleListItem["status"]) => void;
-  onDelete: (id: string, slug: string) => void;
-  onRefresh?: () => void | Promise<void>;
-}) {
   const handleShareDrive = async () => {
     const share = await shareCoupleDriveFolder(c.slug);
     if (!share.ok) {
@@ -230,63 +102,155 @@ function ActionButtons({
       window.open(c.driveFolderUrl, "_blank", "noopener,noreferrer");
       return;
     }
-
     const result = await provisionCoupleDriveFolder(c.slug);
     if (!result.ok) {
       window.alert(result.error ?? "Drive klasörü oluşturulamadı.");
       return;
     }
-
     await onRefresh?.();
-
     window.alert(
       result.created
         ? "Google Drive klasörü oluşturuldu."
-        : "Drive klasörü zaten hazırdı."
+        : "Drive klasörü zaten hazırdı.",
     );
-
     if (result.driveFolderUrl) {
       window.open(result.driveFolderUrl, "_blank", "noopener,noreferrer");
     }
   };
 
+  const pin = c.adminPin?.trim() || "—";
+
   return (
-    <div className="flex flex-wrap gap-2">
-      <a href={publicUrl} target="_blank" rel="noreferrer" className="super-admin-action">
-        Sayfa
-      </a>
-      <a href={adminUrl} target="_blank" rel="noreferrer" className="super-admin-action">
-        Admin
-      </a>
-      <button type="button" className="super-admin-action" onClick={() => copyText(publicUrl)}>
-        Link
-      </button>
-      <button type="button" className="super-admin-action" onClick={() => copyText(publicUrl)}>
-        NFC
-      </button>
-      <button type="button" className="super-admin-action" onClick={() => void handleProvisionDrive()}>
-        {c.driveFolderUrl ? "Drive Aç" : "Drive Oluştur"}
-      </button>
-      <button type="button" className="super-admin-action" onClick={() => void handleShareDrive()}>
-        Drive Paylaş
-      </button>
-      <button type="button" className="super-admin-action" onClick={() => onEdit(c.id)}>
-        Düzenle
-      </button>
-      <button
-        type="button"
-        className="super-admin-action"
-        onClick={() => onToggleStatus(c.id, c.status)}
-      >
-        {c.status === "active" ? "Pasifleştir" : "Aktifleştir"}
-      </button>
-      <button
-        type="button"
-        className="super-admin-action super-admin-action--danger"
-        onClick={() => onDelete(c.id, c.slug)}
-      >
-        Sil
-      </button>
-    </div>
+    <li className="super-admin-couple-card">
+      <div className="super-admin-couple-card__top">
+        <div>
+          <p className="super-admin-couple-card__title">{c.displayTitle}</p>
+          <p className="super-admin-couple-card__slug">{c.slug}</p>
+        </div>
+        <span
+          className={cn(
+            "super-admin-status",
+            c.status === "active"
+              ? "super-admin-status--active"
+              : "super-admin-status--passive",
+          )}
+        >
+          {c.status === "active" ? "Aktif" : c.status === "archived" ? "Arşiv" : "Pasif"}
+        </span>
+      </div>
+
+      <div className="super-admin-couple-card__pin">
+        <div>
+          <p className="super-admin-couple-card__pin-label">Admin PIN</p>
+          <p className="super-admin-couple-card__pin-value">
+            {pinVisible ? pin : "••••"}
+          </p>
+        </div>
+        <div className="super-admin-couple-card__pin-actions">
+          <button
+            type="button"
+            className="super-admin-action"
+            onClick={() => setPinVisible((v) => !v)}
+          >
+            {pinVisible ? "Gizle" : "Göster"}
+          </button>
+          <button
+            type="button"
+            className="super-admin-action"
+            disabled={!c.adminPin}
+            onClick={() => void handleCopy("pin", c.adminPin ?? "")}
+          >
+            {copied === "pin" ? "Kopyalandı" : "Kopyala"}
+          </button>
+        </div>
+      </div>
+
+      <dl className="super-admin-couple-card__meta">
+        <div>
+          <dt>Düğün</dt>
+          <dd>{c.weddingDate ? formatDisplayDate(c.weddingDate) : "—"}</dd>
+        </div>
+        <div>
+          <dt>Anılar</dt>
+          <dd>
+            {c.leafCount} yaprak · {c.mediaCount} medya
+          </dd>
+        </div>
+        <div>
+          <dt>RSVP</dt>
+          <dd>
+            {c.rsvpGuestCount ?? 0} misafir · {c.rsvpResponseCount ?? 0} yanıt
+          </dd>
+        </div>
+        <div>
+          <dt>Paket</dt>
+          <dd>{c.packageType ?? "—"}</dd>
+        </div>
+      </dl>
+
+      {(c.brideEmail || c.groomEmail) && (
+        <div className="super-admin-couple-card__emails">
+          {c.brideEmail ? <span>Gelin: {c.brideEmail}</span> : null}
+          {c.groomEmail ? <span>Damat: {c.groomEmail}</span> : null}
+        </div>
+      )}
+
+      <div className="super-admin-couple-card__links">
+        <button
+          type="button"
+          className="super-admin-action"
+          onClick={() => void handleCopy("public", publicUrl)}
+        >
+          {copied === "public" ? "Link kopyalandı" : "Site linki"}
+        </button>
+        <button
+          type="button"
+          className="super-admin-action"
+          onClick={() => void handleCopy("admin", adminUrl)}
+        >
+          {copied === "admin" ? "Admin linki kopyalandı" : "Admin linki"}
+        </button>
+        <a href={publicUrl} target="_blank" rel="noreferrer" className="super-admin-action">
+          Aç
+        </a>
+        <a href={adminUrl} target="_blank" rel="noreferrer" className="super-admin-action">
+          Panele git
+        </a>
+      </div>
+
+      <div className="super-admin-couple-card__actions">
+        <button type="button" className="super-admin-action" onClick={() => onEdit(c.id)}>
+          Düzenle
+        </button>
+        <button
+          type="button"
+          className="super-admin-action"
+          onClick={() => onToggleStatus(c.id, c.status)}
+        >
+          {c.status === "active" ? "Pasifleştir" : "Aktifleştir"}
+        </button>
+        <button
+          type="button"
+          className="super-admin-action"
+          onClick={() => void handleProvisionDrive()}
+        >
+          {c.driveFolderUrl ? "Drive" : "Drive kur"}
+        </button>
+        <button
+          type="button"
+          className="super-admin-action"
+          onClick={() => void handleShareDrive()}
+        >
+          Paylaş
+        </button>
+        <button
+          type="button"
+          className="super-admin-action super-admin-action--danger"
+          onClick={() => onDelete(c.id, c.slug)}
+        >
+          Sil
+        </button>
+      </div>
+    </li>
   );
 }

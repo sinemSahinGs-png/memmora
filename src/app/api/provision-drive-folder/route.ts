@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireCoupleAdminOrSuperAdmin } from "@/lib/auth/admin-session-cookie";
 import {
   getMissingDriveEnvVars,
   getOrCreateCoupleFolder,
@@ -16,7 +17,7 @@ export async function POST(request: Request) {
   if (missingEnv.length > 0) {
     return NextResponse.json(
       { error: "Google Drive yapılandırması eksik." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
@@ -26,6 +27,11 @@ export async function POST(request: Request) {
 
     if (!coupleSlug) {
       return NextResponse.json({ error: "coupleSlug gerekli." }, { status: 400 });
+    }
+
+    const auth = await requireCoupleAdminOrSuperAdmin(coupleSlug);
+    if (!auth.ok) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const supabase = createServiceRoleClient();
@@ -42,7 +48,7 @@ export async function POST(request: Request) {
 
     const folder = await getOrCreateCoupleFolder(
       couple.slug,
-      couple.drive_folder_id
+      couple.drive_folder_id,
     );
 
     if (
@@ -71,11 +77,9 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          err instanceof Error
-            ? err.message
-            : "Drive klasörü oluşturulamadı.",
+          err instanceof Error ? err.message : "Drive klasörü oluşturulamadı.",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

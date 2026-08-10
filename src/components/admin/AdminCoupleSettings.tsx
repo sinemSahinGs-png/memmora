@@ -4,7 +4,6 @@ import { useState } from "react";
 import type { Couple, CoupleSettingsInput } from "@/lib/types";
 import { buildCoupleDisplayTitle } from "@/lib/onboarding-utils";
 import {
-  updateCoupleSettings,
   DEFAULT_INVITATION_MESSAGE,
 } from "@/lib/supabase/couples";
 import { DEFAULT_HERO_SUBTITLE } from "@/lib/supabase/constants";
@@ -28,8 +27,6 @@ export function AdminCoupleSettings({
   onExportMemories,
   onManageQuiz,
 }: AdminCoupleSettingsProps) {
-  const fallbackPin = process.env.NEXT_PUBLIC_ADMIN_PIN ?? "0606";
-
   const [form, setForm] = useState<CoupleSettingsInput>({
     groomName: couple.groomName,
     brideName: couple.brideName,
@@ -47,7 +44,7 @@ export function AdminCoupleSettings({
     groomEmail: couple.groomEmail,
     driveFolderUrl: couple.driveFolderUrl,
     mediaUploadEnabled: couple.mediaUploadEnabled,
-    adminPin: couple.adminPin ?? fallbackPin,
+    adminPin: "",
     status: couple.status,
     couplePhotoUrl: couple.couplePhotoUrl ?? "",
     invitationEnabled: couple.invitationEnabled,
@@ -87,16 +84,29 @@ export function AdminCoupleSettings({
       displayTitle: buildCoupleDisplayTitle(form.groomName, form.brideName),
     };
 
-    const result = await updateCoupleSettings(couple.id, payload);
+    try {
+      const res = await fetch(`/api/couples/${couple.slug}/settings`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify(payload),
+      });
+      const json = (await res.json()) as {
+        error?: string;
+        couple?: Couple;
+      };
+      if (!res.ok || !json.couple) {
+        setError(json.error ?? "Ayarlar kaydedilemedi.");
+        setSaving(false);
+        return;
+      }
 
-    if (!result.success) {
-      setError(result.error);
-      setSaving(false);
-      return;
+      setMessage("Ayarlar kaydedildi.");
+      setForm((prev) => ({ ...prev, adminPin: "" }));
+      onSaved(json.couple);
+    } catch {
+      setError("Ayarlar kaydedilemedi.");
     }
-
-    setMessage("Ayarlar kaydedildi.");
-    onSaved(result.couple);
     setSaving(false);
   };
 
@@ -306,15 +316,19 @@ export function AdminCoupleSettings({
           description="Admin girişi, sayfa durumu ve misafir özellikleri."
           revealClass="admin-premium-settings__card--d3"
         >
-          <Field label="Admin PIN" hint="Panel girişi için 4 haneli kod.">
+          <Field
+            label="Admin PIN"
+            hint="Boş bırakırsanız mevcut PIN değişmez. Yeni kod girerek güncelleyin."
+          >
             <input
-              type="text"
+              type="password"
               inputMode="numeric"
+              autoComplete="new-password"
               maxLength={8}
               className="admin-premium-settings__input admin-premium-settings__input--pin"
               value={form.adminPin}
               onChange={(e) => handleChange("adminPin", e.target.value)}
-              placeholder="0606"
+              placeholder="••••"
             />
           </Field>
 

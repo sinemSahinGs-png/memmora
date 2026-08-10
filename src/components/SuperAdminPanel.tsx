@@ -9,15 +9,8 @@ import { SuperAdminCoupleList } from "./super-admin/SuperAdminCoupleList";
 import { SuperAdminOrdersTab } from "./super-admin/SuperAdminOrdersTab";
 import { SuperAdminCoupleForm } from "./super-admin/SuperAdminCoupleForm";
 import { SuperAdminAftermoviePanel } from "./super-admin/SuperAdminAftermoviePanel";
+import { SuperAdminHomepageMemoriesTab } from "./super-admin/SuperAdminHomepageMemoriesTab";
 import type { Couple, CoupleCreateInput, CoupleListItem } from "@/lib/types";
-import {
-  createCouple,
-  deleteCouple,
-  fetchAllCouplesList,
-  fetchCoupleById,
-  setCoupleStatus,
-  updateCoupleById,
-} from "@/lib/supabase/couples";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { provisionCoupleDriveFolder } from "@/lib/provision-drive-folder-client";
 import {
@@ -32,7 +25,7 @@ import {
 } from "@/lib/admin-session";
 
 type View = "list" | "create" | "edit";
-type MainTab = "couples" | "orders" | "aftermovie";
+type MainTab = "couples" | "orders" | "aftermovie" | "homepage";
 type StatusFilter = "all" | "active" | "passive" | "archived";
 
 export function SuperAdminPanel() {
@@ -43,7 +36,7 @@ export function SuperAdminPanel() {
   const [couples, setCouples] = useState<CoupleListItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [view, setView] = useState<View>("list");
-  const [mainTab, setMainTab] = useState<MainTab>("couples");
+  const [mainTab, setMainTab] = useState<MainTab>("homepage");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingCouple, setEditingCouple] = useState<Couple | null>(null);
   const [search, setSearch] = useState("");
@@ -58,15 +51,22 @@ export function SuperAdminPanel() {
   const [deleteStep, setDeleteStep] = useState<1 | 2>(1);
   const [deleting, setDeleting] = useState(false);
 
-  const superAdminPin = process.env.NEXT_PUBLIC_SUPER_ADMIN_PIN ?? "9999";
   const adminSessionKey = getSuperAdminSessionKey();
 
   const loadCouples = useCallback(async () => {
     if (!isSupabaseConfigured()) return;
     setLoading(true);
     try {
-      const data = await fetchAllCouplesList();
-      setCouples(data);
+      const res = await fetch("/api/admin/couples", { credentials: "same-origin" });
+      const json = (await res.json()) as {
+        items?: CoupleListItem[];
+        error?: string;
+      };
+      if (!res.ok) {
+        setError(json.error ?? "Çiftler yüklenemedi.");
+        return;
+      }
+      setCouples(json.items ?? []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Çiftler yüklenemedi.");
     } finally {
@@ -75,8 +75,39 @@ export function SuperAdminPanel() {
   }, []);
 
   useEffect(() => {
-    setAuthenticated(isAdminSessionActive(adminSessionKey));
-    setAuthReady(true);
+    let cancelled = false;
+    const restore = async () => {
+      if (!isAdminSessionActive(adminSessionKey)) {
+        if (!cancelled) {
+          setAuthenticated(false);
+          setAuthReady(true);
+        }
+        return;
+      }
+      try {
+        const res = await fetch("/api/admin/session", {
+          method: "GET",
+          credentials: "same-origin",
+        });
+        if (!cancelled) {
+          if (res.ok) {
+            setAuthenticated(true);
+          } else {
+            setAuthenticated(false);
+          }
+          setAuthReady(true);
+        }
+      } catch {
+        if (!cancelled) {
+          setAuthenticated(false);
+          setAuthReady(true);
+        }
+      }
+    };
+    void restore();
+    return () => {
+      cancelled = true;
+    };
   }, [adminSessionKey]);
 
   useEffect(() => {
@@ -113,7 +144,7 @@ export function SuperAdminPanel() {
 
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pin !== superAdminPin) {
+    if (!pin.trim()) {
       setPinError(true);
       return;
     }
@@ -121,6 +152,7 @@ export function SuperAdminPanel() {
       const res = await fetch("/api/admin/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ pin }),
       });
       if (!res.ok) {
@@ -148,13 +180,16 @@ export function SuperAdminPanel() {
     setError(null);
     setMessage(null);
     try {
-      const couple = await fetchCoupleById(id, { includeAdminPin: true });
-      if (!couple) {
-        setError("Çift bulunamadı.");
+      const res = await fetch(`/api/admin/couples/${id}`, {
+        credentials: "same-origin",
+      });
+      const json = (await res.json()) as { couple?: Couple; error?: string };
+      if (!res.ok || !json.couple) {
+        setError(json.error ?? "Çift bulunamadı.");
         return;
       }
       setEditingId(id);
-      setEditingCouple(couple);
+      setEditingCouple(json.couple);
       setView("edit");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Çift yüklenemedi.");
@@ -166,50 +201,70 @@ export function SuperAdminPanel() {
     setError(null);
     setMessage(null);
 
-    const result =
-      view === "edit" && editingId
-        ? await updateCoupleById(editingId, input)
-        : await createCouple(input);
+    try {
+      const res =
+        view === "edit" && editingId
+          ? await fetch(`/api/admin/couples/${editingId}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              credentials: "same-origin",
+              body: JSON.stringify(input),
+            })
+          : await fetch("/api/admin/couples", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "same-origin",
+              body: JSON.stringify(input),
+            });
+      const json = (await res.json()) as {
+        couple?: Couple;
+        error?: string;
+      };
+      setFormLoading(false);
 
-    setFormLoading(false);
-
-    if (!result.success) {
-      setError(result.error);
-      return;
-    }
-
-    if (view === "edit") {
-      const hasEmails =
-        Boolean(input.brideEmail?.trim()) || Boolean(input.groomEmail?.trim());
-
-      if (hasEmails) {
-        const share = await shareCoupleDriveFolder(result.couple.slug, {
-          brideEmail: input.brideEmail,
-          groomEmail: input.groomEmail,
-        });
-        setMessage(formatShareSaveMessage(share, true, "Çift", "güncellendi"));
-      } else {
-        setMessage("Çift güncellendi.");
+      if (!res.ok || !json.couple) {
+        setError(json.error ?? "Kayıt başarısız.");
+        return;
       }
-    } else {
-      const drive = await provisionCoupleDriveFolder(result.couple.slug);
-      if (drive.ok) {
-        setMessage(
-          drive.created
-            ? "Yeni çift oluşturuldu. Google Drive klasörü açıldı."
-            : "Yeni çift oluşturuldu. Drive klasörü zaten mevcuttu."
-        );
-      } else {
-        setMessage(
-          `Yeni çift oluşturuldu. Drive klasörü açılamadı: ${drive.error ?? "bilinmeyen hata"}`
-        );
-      }
-    }
 
-    setView("list");
-    setEditingId(null);
-    setEditingCouple(null);
-    await loadCouples();
+      const resultCouple = json.couple;
+
+      if (view === "edit") {
+        const hasEmails =
+          Boolean(input.brideEmail?.trim()) || Boolean(input.groomEmail?.trim());
+
+        if (hasEmails) {
+          const share = await shareCoupleDriveFolder(resultCouple.slug, {
+            brideEmail: input.brideEmail,
+            groomEmail: input.groomEmail,
+          });
+          setMessage(formatShareSaveMessage(share, true, "Çift", "güncellendi"));
+        } else {
+          setMessage("Çift güncellendi.");
+        }
+      } else {
+        const drive = await provisionCoupleDriveFolder(resultCouple.slug);
+        if (drive.ok) {
+          setMessage(
+            drive.created
+              ? "Yeni çift oluşturuldu. Google Drive klasörü açıldı."
+              : "Yeni çift oluşturuldu. Drive klasörü zaten mevcuttu.",
+          );
+        } else {
+          setMessage(
+            `Yeni çift oluşturuldu. Drive klasörü açılamadı: ${drive.error ?? "bilinmeyen hata"}`,
+          );
+        }
+      }
+
+      setView("list");
+      setEditingId(null);
+      setEditingCouple(null);
+      await loadCouples();
+    } catch (e) {
+      setFormLoading(false);
+      setError(e instanceof Error ? e.message : "Kayıt başarısız.");
+    }
   };
 
   const handleToggleStatus = async (id: string, current: CoupleListItem["status"]) => {
@@ -219,9 +274,15 @@ export function SuperAdminPanel() {
         : current === "passive"
           ? "active"
           : "active";
-    const result = await setCoupleStatus(id, next);
-    if (!result.success) {
-      setError(result.error);
+    const res = await fetch(`/api/admin/couples/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ action: "status", status: next }),
+    });
+    const json = (await res.json()) as { error?: string };
+    if (!res.ok) {
+      setError(json.error ?? "Durum güncellenemedi.");
       return;
     }
     setMessage(next === "active" ? "Çift aktifleştirildi." : "Çift pasifleştirildi.");
@@ -252,10 +313,14 @@ export function SuperAdminPanel() {
     }
 
     setDeleting(true);
-    const result = await deleteCouple(pendingDeleteId);
+    const res = await fetch(`/api/admin/couples/${pendingDeleteId}`, {
+      method: "DELETE",
+      credentials: "same-origin",
+    });
+    const json = (await res.json()) as { error?: string };
     setDeleting(false);
-    if (!result.success) {
-      setError(result.error);
+    if (!res.ok) {
+      setError(json.error ?? "Silme başarısız.");
       return;
     }
     setPendingDeleteId(null);
@@ -287,13 +352,14 @@ export function SuperAdminPanel() {
   if (!authenticated) {
     return (
       <AdminPinLoginScreen
-        eyebrow="Memoora Yönetim Paneli"
-        title="Super Admin"
-        subtitle="Tüm çiftleri yönetmek için PIN girin."
+        eyebrow="Memoora"
+        title="Yönetim Merkezi"
+        subtitle="Tüm düğünleri, PIN’leri ve siparişleri buradan yönetirsiniz."
         pin={pin}
         pinError={pinError}
         onPinChange={setPin}
         onSubmit={handlePinSubmit}
+        mode="password"
       />
     );
   }
@@ -304,58 +370,65 @@ export function SuperAdminPanel() {
         <header className="super-admin-header">
           <div>
             <p className="text-[10px] uppercase tracking-[0.35em] text-champagne/70">
-              Memoora Yönetim Paneli
+              Memoora
             </p>
-            <h1 className="mt-1 font-serif text-2xl text-white/95 sm:text-3xl">
+            <h1 className="mt-1 font-serif text-2xl leading-snug tracking-wide text-white/95 sm:text-3xl">
               {mainTab === "orders"
                 ? "Siparişler"
                 : mainTab === "aftermovie"
-                  ? "MEMOORA AFTER"
-                  : "Tüm Çiftler"}
+                  ? "Düğün Filmleri"
+                  : mainTab === "homepage"
+                    ? "Görseller"
+                    : "Düğünler"}
             </h1>
+            {mainTab === "homepage" ? (
+              <p className="mt-2 max-w-md text-sm leading-relaxed text-white/45">
+                Anasayfa hatıralarını yükleyin, ölçekleyin ve yayınlayın.
+              </p>
+            ) : mainTab === "couples" && view === "list" ? (
+              <p className="mt-2 text-sm leading-relaxed text-white/40">
+                {filteredCouples.length} düğün — PIN, link ve durum tek yerde
+              </p>
+            ) : null}
           </div>
           {mainTab === "couples" && view === "list" ? (
             <GoldButton type="button" variant="primary" className="!text-[10px]" onClick={openCreate}>
-              + Yeni Çift
+              + Yeni Düğün
             </GoldButton>
           ) : null}
         </header>
 
-        <div className="admin-tab-bar mb-6">
-          <button
-            type="button"
-            className={cn("admin-tab-btn", mainTab === "couples" && "admin-tab-btn--active")}
-            onClick={() => {
-              setMainTab("couples");
-              setView("list");
-            }}
-          >
-            Çiftler
-          </button>
-          <button
-            type="button"
-            className={cn("admin-tab-btn", mainTab === "orders" && "admin-tab-btn--active")}
-            onClick={() => setMainTab("orders")}
-          >
-            Siparişler
-          </button>
-          <button
-            type="button"
-            className={cn(
-              "admin-tab-btn",
-              mainTab === "aftermovie" && "admin-tab-btn--active",
-            )}
-            onClick={() => setMainTab("aftermovie")}
-          >
-            Düğün Filmi
-          </button>
-        </div>
+        <nav className="super-admin-nav" aria-label="Yönetim sekmeleri">
+          {(
+            [
+              ["homepage", "Görseller"],
+              ["couples", "Düğünler"],
+              ["orders", "Siparişler"],
+              ["aftermovie", "Film"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              className={cn(
+                "super-admin-nav__btn",
+                mainTab === id && "super-admin-nav__btn--active",
+              )}
+              onClick={() => {
+                setMainTab(id);
+                if (id === "couples") setView("list");
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
 
         {(message || error) && (
           <p
             className={cn(
               "mb-4 text-sm",
-              error ? "text-red-300/90" : "text-champagne/80"
+              error ? "text-red-300/90" : "text-champagne/80",
             )}
           >
             {error ?? message}
@@ -366,12 +439,14 @@ export function SuperAdminPanel() {
           <SuperAdminOrdersTab />
         ) : mainTab === "aftermovie" ? (
           <SuperAdminAftermoviePanel />
+        ) : mainTab === "homepage" ? (
+          <SuperAdminHomepageMemoriesTab />
         ) : view === "list" ? (
           <>
             <div className="super-admin-toolbar">
               <input
                 className="memory-input memory-input-compact flex-1"
-                placeholder="Çift adı veya slug ara…"
+                placeholder="İsim veya slug ara…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -390,8 +465,8 @@ export function SuperAdminPanel() {
                 value={sortByDate}
                 onChange={(e) => setSortByDate(e.target.value as "desc" | "asc")}
               >
-                <option value="desc">Tarih ↓</option>
-                <option value="asc">Tarih ↑</option>
+                <option value="desc">Yeni → Eski</option>
+                <option value="asc">Eski → Yeni</option>
               </select>
             </div>
 
@@ -422,8 +497,7 @@ export function SuperAdminPanel() {
         )}
 
         <p className="super-admin-footer-note">
-          Memoora kalıcı hatıra — otomatik silme yapılmaz. Kalıcı silme yalnızca çift onaylı super
-          admin işlemidir.
+          Her düğünün admin PIN’i kartta görünür. Kalıcı silme geri alınamaz.
         </p>
       </div>
 
@@ -436,8 +510,8 @@ export function SuperAdminPanel() {
         }
         description={
           deleteStep === 1
-            ? "Bu işlem geri alınamaz. Önce pasife almayı veya arşivlemeyi tercih edin."
-            : `Devam etmek için slug değerini yazın: ${pendingDeleteSlug ?? ""}`
+            ? "Bu işlem geri alınamaz. Önce pasife almayı tercih edin."
+            : `Devam etmek için slug yazın: ${pendingDeleteSlug ?? ""}`
         }
         confirmLabel={deleteStep === 1 ? "Evet, devam et" : "Kalıcı sil"}
         cancelLabel="Vazgeç"

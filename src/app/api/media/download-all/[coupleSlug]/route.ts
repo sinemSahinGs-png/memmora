@@ -5,19 +5,28 @@ import {
   fetchCoupleGalleryMedia,
   MAX_BULK_DOWNLOAD_MEDIA,
 } from "@/lib/media-archive";
+import {
+  requireCoupleAdminOrSuperAdmin,
+} from "@/lib/auth/admin-session-cookie";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function GET(
-  request: Request,
-  context: { params: Promise<{ coupleSlug: string }> }
+  _request: Request,
+  context: { params: Promise<{ coupleSlug: string }> },
 ) {
   const { coupleSlug } = await context.params;
-  const { searchParams } = new URL(request.url);
-  const superAdmin = searchParams.get("superAdmin") === "1";
 
-  const auth = await authorizeCoupleGalleryAccess(coupleSlug, { superAdmin });
+  const sessionAuth = await requireCoupleAdminOrSuperAdmin(coupleSlug);
+  if (!sessionAuth.ok) {
+    return NextResponse.json(
+      { error: sessionAuth.error },
+      { status: sessionAuth.status },
+    );
+  }
+
+  const auth = await authorizeCoupleGalleryAccess(coupleSlug);
   if ("error" in auth) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
@@ -28,7 +37,7 @@ export async function GET(
     if (mediaItems.length === 0) {
       return NextResponse.json(
         { error: "İndirilecek medya bulunamadı." },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -38,7 +47,7 @@ export async function GET(
           error:
             "Toplu indirme hazırlanamadı. Lütfen daha küçük gruplar halinde deneyin.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -56,7 +65,7 @@ export async function GET(
     console.error("[media/download-all]", err);
     return NextResponse.json(
       { error: "Arşiv hazırlanamadı. Lütfen tekrar deneyin." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

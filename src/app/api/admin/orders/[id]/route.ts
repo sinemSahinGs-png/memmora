@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireSuperAdmin } from "@/lib/auth/admin-session-cookie";
 import { updateOrderStatus } from "@/lib/supabase/orders";
 import type { OrderStatus } from "@/lib/types";
 
@@ -8,8 +9,13 @@ const VALID: OrderStatus[] = ["active", "passive", "archived"];
 
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
+  const auth = await requireSuperAdmin();
+  if (!auth.ok) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
   try {
     const { id } = await params;
     const body = (await request.json()) as { status?: OrderStatus };
@@ -24,7 +30,7 @@ export async function PATCH(
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Güncellenemedi." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

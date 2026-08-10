@@ -20,9 +20,6 @@ export default async function AdminPage({ params }: PageProps) {
   }
 
   return (
-    <AdminPanel
-      couple={couple}
-      coupleAdminPin={couple.adminPin ?? null}
-    />
+    <AdminPanel couple={couple} />
   );
 }

@@ -8,6 +8,10 @@ import {
   requireCoupleAdminForSlug,
   safeEqualString,
 } from "@/lib/auth/admin-session-cookie";
+import {
+  checkPinRateLimit,
+  clientIpFromRequest,
+} from "@/lib/auth/pin-rate-limit";
 import { isProductionRuntime } from "@/lib/aftermovie/env";
 
 interface RouteContext {
@@ -20,7 +24,10 @@ export async function GET(_req: Request, context: RouteContext) {
   const slug = rawSlug.trim().toLowerCase();
   const auth = await requireCoupleAdminForSlug(slug);
   if (!auth.ok) {
-    return NextResponse.json({ ok: false, error: auth.error }, { status: auth.status });
+    return NextResponse.json(
+      { ok: false, error: auth.error },
+      { status: auth.status },
+    );
   }
   return NextResponse.json({
     ok: true,
@@ -33,6 +40,19 @@ export async function POST(req: Request, context: RouteContext) {
   try {
     const { slug: rawSlug } = await context.params;
     const slug = rawSlug.trim().toLowerCase();
+
+    const ip = clientIpFromRequest(req);
+    const limited = checkPinRateLimit(`couple-admin:${slug}:${ip}`);
+    if (!limited.ok) {
+      return NextResponse.json(
+        { error: "Çok fazla deneme. Lütfen daha sonra tekrar deneyin." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(limited.retryAfterSec) },
+        },
+      );
+    }
+
     const body = (await req.json()) as { pin?: string };
     const pin = (body.pin ?? "").trim();
     if (!pin) {
@@ -52,10 +72,9 @@ export async function POST(req: Request, context: RouteContext) {
     }
 
     const dbPin = (couple.admin_pin ?? "").trim();
-    const fallback =
-      !isProductionRuntime()
-        ? (process.env.NEXT_PUBLIC_ADMIN_PIN ?? "0606").trim()
-        : "";
+    const fallback = !isProductionRuntime()
+      ? (process.env.ADMIN_PIN ?? process.env.SUPER_ADMIN_PIN ?? "0606").trim()
+      : "";
     const expected = dbPin || fallback;
     if (!expected || !safeEqualString(pin, expected)) {
       return NextResponse.json({ error: "PIN hatalı." }, { status: 401 });
