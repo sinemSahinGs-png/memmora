@@ -44,6 +44,7 @@ export function PurchaseWizard() {
   const [weddingDate, setWeddingDate] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [order, setOrder] = useState<MemooraOrderRecord | null>(null);
@@ -124,6 +125,11 @@ export function PurchaseWizard() {
       }
       if (!phone) {
         throw new Error("Ödeme için telefon gerekli.");
+      }
+      if (!acceptedTerms) {
+        throw new Error(
+          "Devam etmek için mesafeli satış ve iptal-iade koşullarını kabul edin.",
+        );
       }
 
       const response = await fetch("/api/purchase", {
@@ -439,10 +445,31 @@ export function PurchaseWizard() {
                       />
                     </label>
                   </div>
+                  <label className="purchase-terms">
+                    <input
+                      type="checkbox"
+                      checked={acceptedTerms}
+                      onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    />
+                    <span>
+                      <Link href="/mesafeli-satis-sozlesmesi" target="_blank">
+                        Mesafeli satış sözleşmesi
+                      </Link>
+                      ,{" "}
+                      <Link href="/iptal-ve-iade" target="_blank">
+                        iptal ve iade
+                      </Link>{" "}
+                      ile{" "}
+                      <Link href="/teslimat-ve-kargo" target="_blank">
+                        teslimat koşullarını
+                      </Link>{" "}
+                      okudum, kabul ediyorum.
+                    </span>
+                  </label>
                   <button
                     type="button"
                     className="purchase-btn purchase-btn--primary"
-                    disabled={loading}
+                    disabled={loading || !acceptedTerms}
                     onClick={submitOrder}
                   >
                     {loading ? "Ödeme hazırlanıyor…" : "Güvenli ödemeye geç"}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LEGAL_COMPANY } from "@/lib/legal/company";
 
 const EXPERIENCE_LINKS = [
   { href: "#deneyim-ozet", label: "Deneyim" },
@@ -9,10 +10,12 @@ const EXPERIENCE_LINKS = [
 ] as const;
 
 const META_LINKS = [
-  { href: "https://instagram.com", label: "Instagram", external: true as const },
-  { href: "mailto:hello@memoora.com", label: "İletişim", external: true as const },
-  { href: "/gizlilik", label: "Gizlilik", external: false as const },
-  { href: "/cerezler", label: "Çerezler", external: false as const },
+  { href: "/iletisim", label: "İletişim" },
+  { href: "/teslimat-ve-kargo", label: "Teslimat & kargo" },
+  { href: "/mesafeli-satis-sozlesmesi", label: "Satış sözleşmesi" },
+  { href: "/iptal-ve-iade", label: "İptal & iade" },
+  { href: "/gizlilik", label: "Gizlilik" },
+  { href: "/cerezler", label: "Çerezler" },
 ] as const;
 
 export function PremiumHomeFooter() {
@@ -27,6 +30,21 @@ export function PremiumHomeFooter() {
             <br />
             Hatırlamak için.
           </p>
+          <div className="home-footer__contact">
+            <p>{LEGAL_COMPANY.legalName}</p>
+            <p>{LEGAL_COMPANY.address}</p>
+            <p>
+              <a href={`mailto:${LEGAL_COMPANY.email}`}>{LEGAL_COMPANY.email}</a>
+              {LEGAL_COMPANY.phone ? (
+                <>
+                  {" · "}
+                  <a href={`tel:${LEGAL_COMPANY.phone.replace(/\s/g, "")}`}>
+                    {LEGAL_COMPANY.phone}
+                  </a>
+                </>
+              ) : null}
+            </p>
+          </div>
         </div>
 
         <nav className="home-footer__nav" aria-label="Deneyim">
@@ -38,22 +56,11 @@ export function PremiumHomeFooter() {
         </nav>
 
         <nav className="home-footer__meta" aria-label="Kurumsal">
-          {META_LINKS.map((link) =>
-            link.external ? (
-              <a
-                key={link.href}
-                href={link.href}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {link.label}
-              </a>
-            ) : (
-              <Link key={link.href} href={link.href}>
-                {link.label}
-              </Link>
-            ),
-          )}
+          {META_LINKS.map((link) => (
+            <Link key={link.href} href={link.href}>
+              {link.label}
+            </Link>
+          ))}
         </nav>
 
         <p className="home-footer__copy">© 2026 Memoora</p>

@@ -2868,6 +2868,21 @@ body:has(.memoora-home-premium) {
   color: rgba(245, 241, 232, 0.78);
 }
 
+.home-footer__contact {
+  margin-top: 16px;
+  display: grid;
+  gap: 4px;
+  font-size: 0.82rem;
+  color: rgba(245, 241, 232, 0.62);
+  line-height: 1.45;
+  max-width: 36ch;
+}
+
+.home-footer__contact a {
+  color: rgba(241, 216, 137, 0.9);
+  text-decoration: none;
+}
+
 .home-footer__nav,
 .home-footer__meta {
   display: flex;
