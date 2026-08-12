@@ -17,6 +17,7 @@ import {
 import { PRODUCT_ASSETS } from "@/lib/memoora-purchase/products";
 import type { MemooraOrderRecord } from "@/lib/memoora-purchase/types";
 import type { PaymentIntentResult } from "@/lib/payments/types";
+import { PaytrIframe } from "@/components/purchase/PaytrIframe";
 
 type StepId = "couple" | "products" | "preview" | "payment" | "confirmation";
 
@@ -41,10 +42,13 @@ export function PurchaseWizard() {
   const [brideName, setBrideName] = useState("");
   const [groomName, setGroomName] = useState("");
   const [weddingDate, setWeddingDate] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [order, setOrder] = useState<MemooraOrderRecord | null>(null);
   const [payment, setPayment] = useState<PaymentIntentResult | null>(null);
+  const [iframeToken, setIframeToken] = useState<string | null>(null);
 
   const minDate = useMemo(() => getMinimumWeddingDate(), []);
   const totals = useMemo(
@@ -113,6 +117,15 @@ export function PurchaseWizard() {
     setLoading(true);
     setError(null);
     try {
+      const email = customerEmail.trim();
+      const phone = customerPhone.trim();
+      if (!email) {
+        throw new Error("Ödeme için e-posta gerekli.");
+      }
+      if (!phone) {
+        throw new Error("Ödeme için telefon gerekli.");
+      }
+
       const response = await fetch("/api/purchase", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -120,6 +133,8 @@ export function PurchaseWizard() {
           brideName: brideName.trim(),
           groomName: groomName.trim(),
           weddingDate,
+          customerEmail: email,
+          customerPhone: phone,
           items: [
             { productType: "magnet", quantity: magnetQty },
             { productType: "keychain", quantity: keychainQty },
@@ -130,8 +145,24 @@ export function PurchaseWizard() {
       if (!response.ok || !data.success) {
         throw new Error(data.error ?? "Sipariş oluşturulamadı.");
       }
-      setOrder(data.order as MemooraOrderRecord);
+
+      const created = data.order as MemooraOrderRecord;
+      setOrder(created);
       setPayment(data.payment as PaymentIntentResult);
+
+      const tokenRes = await fetch("/api/paytr/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: created.id }),
+      });
+      const tokenData = await tokenRes.json();
+      if (!tokenRes.ok || !tokenData.success || !tokenData.iframeToken) {
+        throw new Error(
+          tokenData.error ?? "PayTR ödeme formu başlatılamadı.",
+        );
+      }
+
+      setIframeToken(String(tokenData.iframeToken));
       setStep("confirmation");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Beklenmeyen hata.");
@@ -362,8 +393,8 @@ export function PurchaseWizard() {
                 <>
                   <h1>Ödeme</h1>
                   <p className="purchase-flow__lead">
-                    Siparişinizi gözden geçirin. Ödeme sağlayıcısı bağlandığında
-                    güvenli POS adımına yönlendirileceksiniz.
+                    Bilgileri kontrol edin. Onayladığınızda güvenli PayTR ödeme
+                    formu açılır.
                   </p>
                   <div className="purchase-review">
                     <p>
@@ -384,43 +415,72 @@ export function PurchaseWizard() {
                       Toplam (KDV dahil): {formatTry(totals.total)}
                     </p>
                   </div>
+                  <div className="purchase-form purchase-form--payment">
+                    <label>
+                      <span>E-posta</span>
+                      <input
+                        type="email"
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        placeholder="ornek@eposta.com"
+                        autoComplete="email"
+                        required
+                      />
+                    </label>
+                    <label>
+                      <span>Telefon</span>
+                      <input
+                        type="tel"
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        placeholder="05xx xxx xx xx"
+                        autoComplete="tel"
+                        required
+                      />
+                    </label>
+                  </div>
                   <button
                     type="button"
                     className="purchase-btn purchase-btn--primary"
                     disabled={loading}
                     onClick={submitOrder}
                   >
-                    {loading ? "Sipariş hazırlanıyor…" : "Siparişi oluştur"}
+                    {loading ? "Ödeme hazırlanıyor…" : "Güvenli ödemeye geç"}
                   </button>
                 </>
               )}
 
               {step === "confirmation" && order && (
                 <>
-                  <h1>Siparişiniz alındı</h1>
+                  <h1>Güvenli ödeme</h1>
                   <p className="purchase-flow__lead">
-                    {order.brideName} & {order.groomName} için Memoora siparişi
-                    kaydedildi. Ödeme altyapısı yapılandırıldığında güvenli
-                    tahsilat tamamlanır.
+                    {order.brideName} & {order.groomName} siparişi oluşturuldu.
+                    Kart bilgilerinizi aşağıdaki PayTR formuna girin.
                   </p>
                   <div className="purchase-confirm">
                     <p>
                       Sipariş no: <strong>{order.id}</strong>
                     </p>
                     <p>Toplam: {formatTry(order.total)}</p>
-                    <p>Ödeme durumu: {order.paymentStatus}</p>
-                    {payment?.status === "requires_configuration" && (
-                      <div className="purchase-payment-note">
-                        <h2>POS bilgileri gerekli</h2>
-                        <p>{payment.message}</p>
-                        {payment.checklist && (
-                          <ul>
-                            {payment.checklist.map((item) => (
-                              <li key={item}>{item}</li>
-                            ))}
-                          </ul>
+                    {iframeToken ? (
+                      <PaytrIframe token={iframeToken} />
+                    ) : (
+                      <>
+                        <p>Ödeme durumu: {order.paymentStatus}</p>
+                        {payment?.status === "requires_configuration" && (
+                          <div className="purchase-payment-note">
+                            <h2>POS bilgileri gerekli</h2>
+                            <p>{payment.message}</p>
+                            {payment.checklist && (
+                              <ul>
+                                {payment.checklist.map((item) => (
+                                  <li key={item}>{item}</li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
                         )}
-                      </div>
+                      </>
                     )}
                     <Link href="/" className="purchase-btn purchase-btn--ghost">
                       Ana sayfaya dön

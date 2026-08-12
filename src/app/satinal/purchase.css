@@ -802,6 +802,45 @@
   gap: 6px;
 }
 
+.purchase-form--payment {
+  margin: 18px 0 20px;
+}
+
+.purchase-flow__layout--single {
+  grid-template-columns: 1fr;
+  max-width: 720px;
+  margin-inline: auto;
+}
+
+.purchase-paytr {
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--pf-line);
+  background: rgba(5, 16, 12, 0.72);
+}
+
+.purchase-paytr__eyebrow {
+  margin: 0 0 12px;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(241, 216, 137, 0.88);
+}
+
+.purchase-paytr__frame-wrap {
+  overflow: hidden;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.purchase-paytr__iframe {
+  display: block;
+  width: 100%;
+  min-height: 520px;
+  border: 0;
+}
+
 @media (max-width: 640px) {
   .purchase-flow__step-label {
     display: none;
@@ -809,5 +848,9 @@
 
   .purchase-flow__steps {
     gap: 4px;
+  }
+
+  .purchase-paytr__iframe {
+    min-height: 640px;
   }
 }

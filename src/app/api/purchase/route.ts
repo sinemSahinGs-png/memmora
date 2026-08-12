@@ -5,6 +5,7 @@ import {
   validateCreateOrderInput,
 } from "@/lib/memoora-purchase/validation";
 import { resolvePaymentProvider } from "@/lib/payments/provider";
+import { isPaytrConfigured } from "@/lib/paytr/config";
 import { isServiceRoleConfigured } from "@/lib/supabase/server";
 import { calculatePurchaseTotals } from "@/lib/memoora-purchase/pricing";
 
@@ -27,33 +28,42 @@ export async function POST(request: Request) {
       );
     }
 
+    const paytrReady = isPaytrConfigured();
     const provider = resolvePaymentProvider();
-    const configured = provider.isConfigured();
+    const configured = paytrReady || provider.isConfigured();
 
     const order = await createMemooraOrder(input, {
       paymentStatus: configured ? "awaiting_payment" : "provider_not_configured",
       orderStatus: "pending_payment",
-      paymentProvider: provider.id,
+      paymentProvider: paytrReady ? "paytr" : provider.id,
     });
 
     const origin = new URL(request.url).origin;
-    const payment = await provider.createPaymentIntent({
-      orderId: order.id,
-      amount: order.total,
-      currency: "TRY",
-      description: `Memoora — ${order.brideName} & ${order.groomName}`,
-      customerEmail: order.customerEmail,
-      customerName: order.customerName,
-      lineItems: order.items.map((item) => ({
-        productType: item.productType,
-        name: item.productName,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        lineTotal: item.lineTotal,
-      })),
-      successUrl: `${origin}/satinal?orderId=${order.id}&status=success`,
-      failUrl: `${origin}/satinal?orderId=${order.id}&status=fail`,
-    });
+    const payment = paytrReady
+      ? {
+          status: "requires_action" as const,
+          provider: "paytr",
+          paymentUrl: null,
+          reference: null,
+          message: "PayTR iFrame ile ödeme devam edecek.",
+        }
+      : await provider.createPaymentIntent({
+          orderId: order.id,
+          amount: order.total,
+          currency: "TRY",
+          description: `Memoora — ${order.brideName} & ${order.groomName}`,
+          customerEmail: order.customerEmail,
+          customerName: order.customerName,
+          lineItems: order.items.map((item) => ({
+            productType: item.productType,
+            name: item.productName,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            lineTotal: item.lineTotal,
+          })),
+          successUrl: `${origin}/satinal?orderId=${order.id}&status=success`,
+          failUrl: `${origin}/satinal?orderId=${order.id}&status=fail`,
+        });
 
     return NextResponse.json({
       success: true,

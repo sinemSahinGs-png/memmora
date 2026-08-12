@@ -1,32 +1,42 @@
-# Memoora Payment / POS Integration
+# Memoora Payment / PayTR Integration
 
 Layer 1 (checkout UI + order model) is implemented.
-Layer 2 (real POS provider) is abstracted but not connected.
+Layer 2 (PayTR iFrame API) is implemented.
 
-## Required from client before production payment
+## Environment variables (Vercel + `.env.local`)
 
-- POS / payment provider name
-- API documentation
-- Test API key / secret
-- Merchant / terminal / store IDs (if applicable)
-- 3D Secure requirement
-- Success callback URL
-- Fail callback URL
-- Webhook / notification requirements
-- Supported card / payment methods
-- Installment support needed or not
-- Tax invoice / company billing requirements
+```
+PAYTR_MERCHANT_ID=
+PAYTR_MERCHANT_KEY=
+PAYTR_MERCHANT_SALT=
+PAYTR_TEST_MODE=1
+PAYTR_DEBUG_ON=0
+SITE_URL=https://memoora.com.tr
+NEXT_PUBLIC_SITE_URL=https://memoora.com.tr
+```
 
-## Env keys prepared in code
+- `PAYTR_TEST_MODE=1` → test, `0` → canlı
+- Secrets never go to the client bundle
 
-- `MEMOORA_PAYMENT_PROVIDER`
-- `MEMOORA_PAYMENT_API_KEY`
-- `MEMOORA_PAYMENT_API_SECRET`
-- `MEMOORA_PAYMENT_MERCHANT_ID`
-- `MEMOORA_PAYMENT_SUCCESS_URL`
-- `MEMOORA_PAYMENT_FAIL_URL`
-- `MEMOORA_PAYMENT_WEBHOOK_SECRET`
+## PayTR merchant panel
 
-## SQL migration
+Bildirim URL (callback):
 
-Apply: `supabase/migration-memoora-purchase-orders.sql`
+```
+https://memoora.com.tr/api/paytr/callback
+```
+
+## SQL
+
+Apply in order if not already:
+
+1. `supabase/migration-memoora-purchase-orders.sql`
+2. `supabase/migration-memoora-orders-paytr.sql`
+
+## Flow
+
+1. `/satinal` → order created pending (`/api/purchase`)
+2. `/api/paytr/token` → iframe token (server-side amount)
+3. PayTR iframe on confirmation step
+4. User returns to `/odeme/basarili` or `/odeme/basarisiz` (informational only)
+5. Authoritative status via `/api/paytr/callback` → `paid` / `failed` (idempotent)

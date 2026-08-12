@@ -523,6 +523,7 @@ export interface Database {
           order_status: string;
           payment_provider: string | null;
           payment_reference: string | null;
+          merchant_oid: string | null;
           customer_email: string | null;
           customer_phone: string | null;
           customer_name: string | null;
@@ -542,6 +543,7 @@ export interface Database {
           order_status?: string;
           payment_provider?: string | null;
           payment_reference?: string | null;
+          merchant_oid?: string | null;
           customer_email?: string | null;
           customer_phone?: string | null;
           customer_name?: string | null;
@@ -561,6 +563,7 @@ export interface Database {
           order_status?: string;
           payment_provider?: string | null;
           payment_reference?: string | null;
+          merchant_oid?: string | null;
           customer_email?: string | null;
           customer_phone?: string | null;
           customer_name?: string | null;

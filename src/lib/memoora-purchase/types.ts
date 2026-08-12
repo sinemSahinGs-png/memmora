@@ -43,6 +43,7 @@ export interface MemooraOrderRecord {
   orderStatus: MemooraOrderStatus;
   paymentProvider: string | null;
   paymentReference: string | null;
+  merchantOid?: string | null;
   customerEmail: string | null;
   customerPhone: string | null;
   customerName: string | null;

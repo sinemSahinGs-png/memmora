@@ -20,6 +20,7 @@ interface DbOrderRow {
   order_status: string;
   payment_provider: string | null;
   payment_reference: string | null;
+  merchant_oid: string | null;
   customer_email: string | null;
   customer_phone: string | null;
   customer_name: string | null;
@@ -55,6 +56,7 @@ function mapOrder(
     orderStatus: row.order_status as MemooraOrderStatus,
     paymentProvider: row.payment_provider,
     paymentReference: row.payment_reference,
+    merchantOid: row.merchant_oid ?? null,
     customerEmail: row.customer_email,
     customerPhone: row.customer_phone,
     customerName: row.customer_name,
@@ -79,6 +81,8 @@ export async function createMemooraOrder(
     paymentStatus?: MemooraOrderPaymentStatus;
     orderStatus?: MemooraOrderStatus;
     paymentProvider?: string | null;
+    paymentReference?: string | null;
+    merchantOid?: string | null;
   },
 ): Promise<MemooraOrderRecord> {
   if (!isServiceRoleConfigured()) {
@@ -104,6 +108,8 @@ export async function createMemooraOrder(
       payment_status: opts?.paymentStatus ?? "awaiting_payment",
       order_status: opts?.orderStatus ?? "pending_payment",
       payment_provider: opts?.paymentProvider ?? null,
+      payment_reference: opts?.paymentReference ?? null,
+      merchant_oid: opts?.merchantOid ?? null,
       customer_email: input.customerEmail ?? null,
       customer_phone: input.customerPhone ?? null,
       customer_name:
@@ -163,6 +169,29 @@ export async function fetchMemooraOrderById(
   return mapOrder(order as DbOrderRow, (items ?? []) as DbItemRow[]);
 }
 
+export async function fetchMemooraOrderByMerchantOid(
+  merchantOid: string,
+): Promise<MemooraOrderRecord | null> {
+  if (!isServiceRoleConfigured() || !merchantOid.trim()) return null;
+
+  const supabase = createServiceRoleClient();
+  const { data: order, error } = await supabase
+    .from("memoora_orders")
+    .select("*")
+    .eq("merchant_oid", merchantOid.trim())
+    .maybeSingle();
+
+  if (error || !order) return null;
+
+  const { data: items } = await supabase
+    .from("memoora_order_items")
+    .select("*")
+    .eq("order_id", order.id)
+    .order("created_at", { ascending: true });
+
+  return mapOrder(order as DbOrderRow, (items ?? []) as DbItemRow[]);
+}
+
 export async function updateMemooraOrderPayment(
   orderId: string,
   patch: {
@@ -170,6 +199,7 @@ export async function updateMemooraOrderPayment(
     orderStatus?: MemooraOrderStatus;
     paymentProvider?: string | null;
     paymentReference?: string | null;
+    merchantOid?: string | null;
   },
 ): Promise<void> {
   const supabase = createServiceRoleClient();
@@ -180,9 +210,62 @@ export async function updateMemooraOrderPayment(
       order_status: patch.orderStatus,
       payment_provider: patch.paymentProvider,
       payment_reference: patch.paymentReference,
+      ...(patch.merchantOid !== undefined
+        ? { merchant_oid: patch.merchantOid }
+        : {}),
       updated_at: new Date().toISOString(),
     })
     .eq("id", orderId);
+
+  if (error) throw error;
+}
+
+/**
+ * Idempotent paid transition: only first successful callback wins.
+ * Returns true when this call applied the paid update.
+ */
+export async function markMemooraOrderPaidOnce(
+  merchantOid: string,
+  paymentReference?: string | null,
+): Promise<{ updated: boolean; orderId: string | null }> {
+  const supabase = createServiceRoleClient();
+  const now = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from("memoora_orders")
+    .update({
+      payment_status: "paid",
+      order_status: "confirmed",
+      payment_provider: "paytr",
+      payment_reference: paymentReference ?? merchantOid,
+      updated_at: now,
+    })
+    .eq("merchant_oid", merchantOid)
+    .neq("payment_status", "paid")
+    .select("id");
+
+  if (error) throw error;
+
+  const row = Array.isArray(data) ? data[0] : null;
+  return { updated: Boolean(row?.id), orderId: row?.id ?? null };
+}
+
+export async function markMemooraOrderFailedIfUnpaid(
+  merchantOid: string,
+  paymentReference?: string | null,
+): Promise<void> {
+  const supabase = createServiceRoleClient();
+  const { error } = await supabase
+    .from("memoora_orders")
+    .update({
+      payment_status: "failed",
+      order_status: "pending_payment",
+      payment_provider: "paytr",
+      payment_reference: paymentReference ?? merchantOid,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("merchant_oid", merchantOid)
+    .neq("payment_status", "paid");
 
   if (error) throw error;
 }
