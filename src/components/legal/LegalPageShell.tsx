@@ -21,10 +21,12 @@ export function LegalPageShell({
           MEMOORA
         </Link>
         <nav className="legal-page__topnav" aria-label="Yasal sayfalar">
-          <Link href="/iletisim">İletişim</Link>
+          <Link href="/iletisim">{"\u0130leti\u015fim"}</Link>
           <Link href="/teslimat-ve-kargo">Teslimat</Link>
-          <Link href="/mesafeli-satis-sozlesmesi">Satış sözleşmesi</Link>
-          <Link href="/iptal-ve-iade">İptal &amp; iade</Link>
+          <Link href="/mesafeli-satis-sozlesmesi">
+            {"Sat\u0131\u015f s\u00f6zle\u015fmesi"}
+          </Link>
+          <Link href="/iptal-ve-iade">{"\u0130ptal & iade"}</Link>
         </nav>
       </header>
 
@@ -35,17 +37,18 @@ export function LegalPageShell({
           <p className="legal-page__lead">{description}</p>
         ) : null}
         <p className="legal-page__updated">
-          Son güncelleme: {LEGAL_COMPANY.lastUpdated}
+          {"Son g\u00fcncelleme: "}
+          {LEGAL_COMPANY.lastUpdated}
         </p>
         <div className="legal-page__body">{children}</div>
       </main>
 
       <footer className="legal-page__footer">
         <p>
-          {LEGAL_COMPANY.legalName} · {LEGAL_COMPANY.email}
-          {LEGAL_COMPANY.phone ? ` · ${LEGAL_COMPANY.phone}` : ""}
+          {LEGAL_COMPANY.email}
+          {LEGAL_COMPANY.phone ? ` \u00b7 ${LEGAL_COMPANY.phone}` : ""}
         </p>
-        <Link href="/satinal">Satın almaya dön</Link>
+        <Link href="/satinal">{"Sat\u0131n almaya d\u00f6n"}</Link>
       </footer>
     </div>
   );

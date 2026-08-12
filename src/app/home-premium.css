@@ -2869,18 +2869,32 @@ body:has(.memoora-home-premium) {
 }
 
 .home-footer__contact {
-  margin-top: 16px;
+  margin-top: 18px;
   display: grid;
-  gap: 4px;
-  font-size: 0.82rem;
-  color: rgba(245, 241, 232, 0.62);
-  line-height: 1.45;
-  max-width: 36ch;
+  gap: 6px;
+  max-width: 28ch;
 }
 
-.home-footer__contact a {
-  color: rgba(241, 216, 137, 0.9);
+.home-footer__contact-label {
+  margin: 0 0 2px;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(241, 216, 137, 0.88);
   text-decoration: none;
+}
+
+.home-footer__contact-link {
+  color: rgba(245, 241, 232, 0.78);
+  text-decoration: none;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.home-footer__contact-link:hover,
+.home-footer__contact-label:hover {
+  color: rgba(241, 216, 137, 0.98);
 }
 
 .home-footer__nav,
