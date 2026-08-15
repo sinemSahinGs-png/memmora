@@ -192,6 +192,72 @@ export async function fetchMemooraOrderByMerchantOid(
   return mapOrder(order as DbOrderRow, (items ?? []) as DbItemRow[]);
 }
 
+export async function fetchAllMemooraOrders(): Promise<MemooraOrderRecord[]> {
+  if (!isServiceRoleConfigured()) return [];
+
+  const supabase = createServiceRoleClient();
+  const { data: orders, error } = await supabase
+    .from("memoora_orders")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  if (!orders?.length) return [];
+
+  const orderIds = orders.map((row) => row.id);
+  const { data: items, error: itemsError } = await supabase
+    .from("memoora_order_items")
+    .select("*")
+    .in("order_id", orderIds)
+    .order("created_at", { ascending: true });
+
+  if (itemsError) throw new Error(itemsError.message);
+
+  const grouped = new Map<string, DbItemRow[]>();
+  for (const item of (items ?? []) as Array<DbItemRow & { order_id: string }>) {
+    const list = grouped.get(item.order_id) ?? [];
+    list.push(item);
+    grouped.set(item.order_id, list);
+  }
+
+  return (orders as DbOrderRow[]).map((row) =>
+    mapOrder(row, grouped.get(row.id) ?? []),
+  );
+}
+
+export async function updateMemooraOrderStatus(
+  orderId: string,
+  orderStatus: MemooraOrderStatus,
+): Promise<MemooraOrderRecord | null> {
+  if (!isServiceRoleConfigured()) {
+    throw new Error("Supabase yapılandırması eksik.");
+  }
+
+  const allowed: MemooraOrderStatus[] = [
+    "draft",
+    "pending_payment",
+    "confirmed",
+    "cancelled",
+    "fulfilled",
+  ];
+  if (!allowed.includes(orderStatus)) {
+    throw new Error("Geçersiz sipariş durumu.");
+  }
+
+  const supabase = createServiceRoleClient();
+  const { error } = await supabase
+    .from("memoora_orders")
+    .update({
+      order_status: orderStatus,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", orderId);
+
+  if (error) throw new Error(error.message);
+
+  return fetchMemooraOrderById(orderId);
+}
+
 export async function updateMemooraOrderPayment(
   orderId: string,
   patch: {
