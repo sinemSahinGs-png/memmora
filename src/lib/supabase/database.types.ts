@@ -619,6 +619,44 @@ export interface Database {
           },
         ];
       };
+      memoora_notification_log: {
+        Row: {
+          id: string;
+          order_id: string | null;
+          channel: string;
+          event_type: string;
+          event_key: string;
+          sent_at: string;
+          metadata: Json;
+        };
+        Insert: {
+          id?: string;
+          order_id?: string | null;
+          channel?: string;
+          event_type: string;
+          event_key: string;
+          sent_at?: string;
+          metadata?: Json;
+        };
+        Update: {
+          id?: string;
+          order_id?: string | null;
+          channel?: string;
+          event_type?: string;
+          event_key?: string;
+          sent_at?: string;
+          metadata?: Json;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "memoora_notification_log_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "memoora_orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       aftermovie_music: {
         Row: {
           id: string;
