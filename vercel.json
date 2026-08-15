@@ -3,6 +3,14 @@
     {
       "path": "/api/cron/aftermovie-publish",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/telegram-ops",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/telegram-ops",
+      "schedule": "0 18 * * *"
     }
   ]
 }
